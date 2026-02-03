@@ -1,6 +1,6 @@
 NAME = webserv
 CC = c++
-CFLAGS = -std=c++98 -MMD -Wall -Wextra -O3 -Iinc # -Werror
+CFLAGS = -std=c++98 -MMD -Wall -Wextra -g3 -Iinc # -Werror
 
 SRCS = $(wildcard *.cpp */*.cpp)
 OBJ_DIR = obj
@@ -10,11 +10,11 @@ DEPS = $(OBJ:.o=.d)
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	$(CC) $(CFLAGS) -DDEBUG $(OBJ) -o $(NAME)
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -DDEBUG -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR)
