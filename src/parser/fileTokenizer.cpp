@@ -4,7 +4,7 @@
 /* Constructor */
 
 fileTokenizer::fileTokenizer(const std::string &filepath,
-                             std::vector<std::string> &tokens)
+                             std::vector<Token> &tokens)
     : _filePath(filepath), _tokens(tokens) {
   this->_loadFile();
   this->_tokenize();
@@ -26,6 +26,7 @@ void fileTokenizer::_loadFile() {
     this->_fileContent += '\n';
   }
 
+  // Throw if read error
   if (file.bad() == true || file.eof() == false)
     throw std::runtime_error("Error while reading " + this->_filePath);
   if (this->_fileContent.empty() == true)
@@ -36,7 +37,12 @@ void fileTokenizer::_loadFile() {
 }
 
 void fileTokenizer::_tokenize() {
-  LOG_INFO("Starting tokenization");
+  LOG_INFO("Starting tokenization...");
+
+  std::string buf;
+
+  for (size_t i = 0; i < this->_fileContent.length(); i++) {
+  }
 
   LOG_INFO("Tokenisation done");
 }

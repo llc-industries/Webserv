@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 bool handleConfig(int argc, char **argv) {
-  std::vector<std::string> tokens;
+  std::vector<Token> tokens;
   std::string filepath;
 
   if (argc < 2) {
