@@ -12,6 +12,10 @@ bool handleConfig(int argc, char **argv) {
     LOG_WARN("No arguments provided, using default configuration file");
     LOG_INFO("Using ./webserv.conf as config file");
     filepath = "./webserv.conf";
+  } else if (argc > 2) {
+    LOG_WARN("Too many arguments provided");
+    LOG_INFO("Using \"" << argv[1] << "\" as config file");
+    filepath = argv[1];
   } else {
     LOG_INFO("Using \"" << argv[1] << "\" as config file");
     filepath = argv[1];
