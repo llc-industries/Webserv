@@ -16,14 +16,14 @@
 #ifdef DEBUG
 
 #define LOG_INFO(x)                                                            \
-	std::cout << "[ " << BLUE << "INFO" << RESET << " ] " << x << '\n'
+  std::cout << "[ " << BLUE << "INFO" << RESET << " ] " << x << '\n'
 
 #define LOG_WARN(x)                                                            \
-	std::cout << "[ " << YELLOW << "WARNING" << RESET << " ] " << x << '\n'
+  std::cout << "[ " << YELLOW << "WARNING" << RESET << " ] " << x << '\n'
 
 #define LOG_ERR(x)                                                             \
-	std::cerr << "[ " << RED << "ERROR" << RESET << " ] " << x << " ("         \
-			  << __FILE__ << ":" << __LINE__ << ")" << std::endl
+  std::cerr << "[ " << RED << "ERROR" << RESET << " ] " << x << " ("           \
+            << __FILE__ << ":" << __LINE__ << ")" << std::endl
 
 #else
 
