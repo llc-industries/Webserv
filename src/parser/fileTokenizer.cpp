@@ -40,9 +40,57 @@ void fileTokenizer::_tokenize() {
   LOG_INFO("Starting tokenization...");
 
   std::string buf;
+  size_t cur_line = 1;
 
   for (size_t i = 0; i < this->_fileContent.length(); i++) {
+    char c = this->_fileContent[i];
+
+    // 1 - newline
+    if (c == '\n') {
+      cur_line++;
+      continue;
+    }
+
+    // 2 - comments (flush puis ignore)
+    if (c == '#') {
+      if (buf.empty() == false) {
+        this->_tokens.push_back(Token(buf, cur_line));
+        buf.clear();
+      }
+      while (this->_fileContent[i] && this->_fileContent[i] != '\n')
+        i++;
+      i--;
+      continue;
+    }
+
+    // 3 - Spaces
+    if (std::isspace(c)) {
+      if (buf.empty() == false) {
+        this->_tokens.push_back(Token(buf, cur_line));
+        buf.clear();
+      }
+      continue;
+    }
+
+    // 4 - {} ;
+    if (c == '{' || c == '}' || c == ';') {
+      if (buf.empty() == false) {
+        this->_tokens.push_back(Token(buf, cur_line));
+        buf.clear();
+      }
+      this->_tokens.push_back(Token(std::string(1, c), cur_line));
+      continue;
+    }
+
+    // 5 - Flush char +=
+    buf += c;
   }
+  if (buf.empty() == false)
+    this->_tokens.push_back(Token(buf, cur_line));
 
   LOG_INFO("Tokenisation done");
+  for (std::vector<Token>::iterator it = _tokens.begin(); it != _tokens.end();
+       ++it) {
+    std::cout << it->tok << '\n';
+  }
 }
