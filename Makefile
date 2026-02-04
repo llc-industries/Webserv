@@ -2,7 +2,7 @@ NAME = webserv
 CC = c++
 CFLAGS = -std=c++98 -MMD -Wall -Wextra -g3 -Iinc # -Werror
 
-SRCS = $(wildcard *.cpp */*.cpp)
+SRCS = $(shell find src -name "*.cpp")
 OBJ_DIR = obj
 OBJ = $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 DEPS = $(OBJ:.o=.d)
