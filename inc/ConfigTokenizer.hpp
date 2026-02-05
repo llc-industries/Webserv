@@ -4,7 +4,6 @@
 #include <cerrno>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string.h> // strerror()
 #include <string>
 #include <vector>
@@ -22,11 +21,10 @@ public:
   ~ConfigTokenizer() {}
 
 private:
-  const std::string &_configPath;
   std::string _fileContent;
   std::vector<Token> &_tokens;
 
-  void _loadFile();
+  void _loadFile(const std::string &configPath);
   void _tokenize();
 };
 

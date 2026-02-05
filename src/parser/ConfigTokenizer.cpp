@@ -5,19 +5,19 @@
 
 ConfigTokenizer::ConfigTokenizer(const std::string &configPath,
                                  std::vector<Token> &tokens)
-    : _configPath(configPath), _tokens(tokens) {
-  this->_loadFile();
+    : _tokens(tokens) {
+  this->_loadFile(configPath);
   this->_tokenize();
 }
 
 /* Methods */
 
-void ConfigTokenizer::_loadFile() {
-  LOG_INFO("Loading " << this->_configPath << "...");
+void ConfigTokenizer::_loadFile(const std::string &configPath) {
+  LOG_INFO("Loading " << configPath << "...");
 
-  std::ifstream file(this->_configPath.c_str());
+  std::ifstream file(configPath.c_str());
   if (file.is_open() == false)
-    throw std::runtime_error("Error while opening " + this->_configPath + ": " +
+    throw std::runtime_error("Error while opening " + configPath + ": " +
                              strerror(errno));
 
   std::string line;
@@ -28,9 +28,9 @@ void ConfigTokenizer::_loadFile() {
 
   // Throw if read error
   if (file.bad() == true || file.eof() == false)
-    throw std::runtime_error("Error while reading " + this->_configPath);
+    throw std::runtime_error("Error while reading " + configPath);
   if (this->_fileContent.empty() == true)
-    throw std::runtime_error(this->_configPath + " is empty");
+    throw std::runtime_error(configPath + " is empty");
 
   LOG_INFO("Config file loaded into memory");
   // std::cout << this->_fileContent; /* Dump file to stdout */
@@ -45,25 +45,22 @@ void ConfigTokenizer::_tokenize() {
   for (size_t i = 0; i < this->_fileContent.length(); i++) {
     char c = this->_fileContent[i];
 
-    // 1 - newline
     if (c == '\n') {
       cur_line++;
       continue;
     }
 
-    // 2 - comments (flush puis ignore)
     if (c == '#') {
       if (buf.empty() == false) {
         this->_tokens.push_back(Token(buf, cur_line));
         buf.clear();
       }
-      while (this->_fileContent[i] && this->_fileContent[i] != '\n')
+      while (i < this->_fileContent.length() && this->_fileContent[i] != '\n')
         i++;
       i--;
       continue;
     }
 
-    // 3 - Spaces
     if (std::isspace(c)) {
       if (buf.empty() == false) {
         this->_tokens.push_back(Token(buf, cur_line));
@@ -72,7 +69,6 @@ void ConfigTokenizer::_tokenize() {
       continue;
     }
 
-    // 4 - {} ;
     if (c == '{' || c == '}' || c == ';') {
       if (buf.empty() == false) {
         this->_tokens.push_back(Token(buf, cur_line));
@@ -82,15 +78,14 @@ void ConfigTokenizer::_tokenize() {
       continue;
     }
 
-    // 5 - Flush char +=
     buf += c;
   }
   if (buf.empty() == false)
     this->_tokens.push_back(Token(buf, cur_line));
 
-  LOG_INFO("Tokenisation done");
+  LOG_INFO("Tokenisation done. " << _tokens.size() << " tokens created");
   for (std::vector<Token>::iterator it = _tokens.begin(); it != _tokens.end();
        ++it) {
     std::cout << it->tok << '\n';
-  }
+  } /* Dump tokens to stdout */
 }
