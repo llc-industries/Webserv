@@ -1,11 +1,11 @@
-#ifndef FILE_TOKENIZER_HPP
-#define FILE_TOKENIZER_HPP
+#ifndef CONFIG_TOKENIZER_HPP
+#define CONFIG_TOKENIZER_HPP
 
-#include <errno.h>
+#include <cerrno>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string.h>
+#include <string.h> // strerror()
 #include <string>
 #include <vector>
 
@@ -16,13 +16,13 @@ struct Token {
   Token(std::string token, size_t line) : tok(token), line(line) {}
 };
 
-class fileTokenizer {
+class ConfigTokenizer {
 public:
-  fileTokenizer(const std::string &filepath, std::vector<Token> &tokens);
-  ~fileTokenizer() {}
+  ConfigTokenizer(const std::string &configPath, std::vector<Token> &tokens);
+  ~ConfigTokenizer() {}
 
 private:
-  const std::string &_filePath;
+  const std::string &_configPath;
   std::string _fileContent;
   std::vector<Token> &_tokens;
 
@@ -30,4 +30,4 @@ private:
   void _tokenize();
 };
 
-#endif /* FILE_TOKENIZER_HPP */
+#endif /* CONFIG_TOKENIZER_HPP */

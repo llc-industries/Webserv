@@ -1,5 +1,5 @@
-#ifndef DEBUG_HPP
-#define DEBUG_HPP
+#ifndef LOGS_HPP
+#define LOGS_HPP
 
 #include <iostream>
 
@@ -33,4 +33,4 @@
 
 #endif
 
-#endif /* DEBUG_HPP */
+#endif /* LOGS_HPP */

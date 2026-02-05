@@ -1,23 +1,23 @@
-#include "fileTokenizer.hpp"
-#include "debug.hpp"
+#include "ConfigTokenizer.hpp"
+#include "logs.hpp"
 
 /* Constructor */
 
-fileTokenizer::fileTokenizer(const std::string &filepath,
-                             std::vector<Token> &tokens)
-    : _filePath(filepath), _tokens(tokens) {
+ConfigTokenizer::ConfigTokenizer(const std::string &configPath,
+                                 std::vector<Token> &tokens)
+    : _configPath(configPath), _tokens(tokens) {
   this->_loadFile();
   this->_tokenize();
 }
 
 /* Methods */
 
-void fileTokenizer::_loadFile() {
-  LOG_INFO("Loading " << this->_filePath << "...");
+void ConfigTokenizer::_loadFile() {
+  LOG_INFO("Loading " << this->_configPath << "...");
 
-  std::ifstream file(this->_filePath.c_str());
+  std::ifstream file(this->_configPath.c_str());
   if (file.is_open() == false)
-    throw std::runtime_error("Error while opening " + this->_filePath + ": " +
+    throw std::runtime_error("Error while opening " + this->_configPath + ": " +
                              strerror(errno));
 
   std::string line;
@@ -28,15 +28,15 @@ void fileTokenizer::_loadFile() {
 
   // Throw if read error
   if (file.bad() == true || file.eof() == false)
-    throw std::runtime_error("Error while reading " + this->_filePath);
+    throw std::runtime_error("Error while reading " + this->_configPath);
   if (this->_fileContent.empty() == true)
-    throw std::runtime_error(this->_filePath + " is empty");
+    throw std::runtime_error(this->_configPath + " is empty");
 
   LOG_INFO("Config file loaded into memory");
   // std::cout << this->_fileContent; /* Dump file to stdout */
 }
 
-void fileTokenizer::_tokenize() {
+void ConfigTokenizer::_tokenize() {
   LOG_INFO("Starting tokenization...");
 
   std::string buf;
