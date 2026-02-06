@@ -11,7 +11,16 @@
 #define BLUE "\033[34m"
 #define MAGENTA "\033[35m"
 #define CYAN "\033[36m"
-#define WHITE "\033[37m"
+#define WHITE "\033[97m"
+#define GREY "\033[90m"
+#define SILVER "\033[37m"
+
+#define PRINT_HEADER                                                           \
+  std::cout << '\n'                                                            \
+            << WHITE "██     ██ ▄▄▄▄▄ ▄▄▄▄   ▄▄▄▄ ▄▄▄▄▄ ▄▄▄▄  ▄▄ ▄▄ \n"        \
+            << GREY "██ ▄█▄ ██ ██▄▄  ██▄██ ███▄▄ ██▄▄  ██▄█▄ ██▄██ \n"         \
+            << BLACK " ▀██▀██▀  ██▄▄▄ ██▄█▀ ▄▄██▀ ██▄▄▄ ██ ██  ▀█▀  \n"        \
+            << RESET << std::endl;
 
 #ifdef DEBUG
 
@@ -22,14 +31,14 @@
   std::cout << "[ " << YELLOW << "WARNING" << RESET << " ] " << x << '\n'
 
 #define LOG_ERR(x)                                                             \
-  std::cerr << "[ " << RED << "ERROR" << RESET << " ] " << x << " ("           \
-            << __FILE__ << ":" << __LINE__ << ")" << std::endl
+  std::cerr << "[ " << RED << "ERROR" << RESET << " ] " << x << '\n'
 
 #else
 
 #define LOG_INFO(x)
 #define LOG_WARN(x)
 #define LOG_ERR(x)
+#define POS
 
 #endif
 

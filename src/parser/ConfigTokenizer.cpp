@@ -83,8 +83,9 @@ void ConfigTokenizer::_tokenize() {
   }
   if (buf.empty() == false)
     this->_tokens.push_back(Token(buf, curLine));
-  for (std::vector<Token>::iterator it = _tokens.begin(); it != _tokens.end();
-       ++it) {
-    std::cout << it->tok << '\n';
-  } /* Dump tokens to stdout */
+  // for (std::vector<Token>::iterator it = _tokens.begin(); it !=
+  // _tokens.end();
+  //      ++it) {
+  //   std::cout << it->tok << '\n';
+  // } /* Dump tokens to stdout */
 }

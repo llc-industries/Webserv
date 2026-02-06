@@ -9,7 +9,7 @@ std::string findConfigFile(int argc, char **argv) {
 
   if (argc < 2) {
     LOG_WARN("No arguments provided, using default configuration file");
-    LOG_INFO("Using ./webserv.conf as config file");
+    LOG_INFO("Using ./conf/webserv.conf as config file");
     configPath = "./conf/webserv.conf";
   } else if (argc > 2) {
     LOG_WARN("Too many arguments provided");
@@ -24,12 +24,13 @@ std::string findConfigFile(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
+  PRINT_HEADER;
   const std::string configPath = findConfigFile(argc, argv);
 
   try {
     ConfigParser Config(configPath);
   } catch (const std::exception &e) {
-    LOG_ERR("Fatal error: " << e.what());
+    LOG_ERR(e.what());
   }
 
   return EXIT_SUCCESS;
