@@ -4,6 +4,6 @@
 #include <string>
 #include <vector>
 
-struct Config {};
+struct ServerConfig {};
 
 #endif /* CONFIG_STRUCTS_HPP */
