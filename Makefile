@@ -1,7 +1,7 @@
 NAME := webserv
 CC := c++
 # TODO: Add -Werror when done
-CFLAGS := -std=c++98 -MMD -Wall -Wextra -Iinc
+CFLAGS := -std=c++98 -Wall -Wextra -MMD -Iinc
 
 SRCS := $(shell find src -name "*.cpp")
 OBJ_DIR := obj

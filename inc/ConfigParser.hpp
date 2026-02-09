@@ -16,6 +16,10 @@ private:
   std::vector<Token> _tokens;
 
   void _parse();
+  void _advance();
+  void _expect();
+  void _parseServerBlock();
+  void _parseLocationBlock();
 };
 
 #endif /* CONFIG_PARSER_HPP */

@@ -10,3 +10,11 @@ ConfigParser::ConfigParser(const std::string &configPath) {
 }
 
 void ConfigParser::_parse() { return; }
+
+void ConfigParser::_advance() { return; }
+
+void ConfigParser::_expect() { return; }
+
+void ConfigParser::_parseServerBlock() { return; }
+
+void ConfigParser::_parseLocationBlock() { return; }
