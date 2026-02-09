@@ -10,8 +10,8 @@ struct Location {
   std::string root;                 //
   std::vector<std::string> methods; // Allowed methods (POST GET DELETE)
   std::vector<std::string> index;
-  std::string cgiPass;             // Path to cgi (php pyhton etc)
-  std::string uploadStore;         // Path to post requests;
+  std::string cgiPath;             // Path to cgi (php pyhton etc)
+  std::string postPath;            // Path to post requests;
   std::pair<int, std::string> ret; // Return directive
   bool autoindex; // default to off, send ls if request finish with /
 
