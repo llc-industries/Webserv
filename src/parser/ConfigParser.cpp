@@ -3,6 +3,7 @@
 
 ConfigParser::ConfigParser(const std::string &configPath)
     : _configPath(configPath), _current(0) {
+
   ConfigTokenizer(configPath, this->_tokens);
 
   LOG_INFO("Starting parser...");
@@ -11,7 +12,7 @@ ConfigParser::ConfigParser(const std::string &configPath)
   LOG_INFO("Parser done");
 }
 
-/* ----- HELPERS ----- */
+/* ----- INIT ----- */
 
 void ConfigParser::_initFuncTables() {
   _serverFuncTable["listen"] = &ConfigParser::_parsePort;
@@ -25,30 +26,51 @@ void ConfigParser::_initFuncTables() {
   // _locFuncTable[""] = &ConfigParser::; ...
 }
 
+/* ----- GETTERS ----- */
+
+// Both returns the last token if _current >=
+// _tokens.size()
+
+const std::string &ConfigParser::_getTokStr() const {
+  if (_current < _tokens.size())
+    return _tokens[_current].tok;
+  return _tokens.back().tok;
+}
+
+size_t ConfigParser::_getTokLine() const {
+  if (_current < _tokens.size())
+    return _tokens[_current].line;
+  return _tokens.back().line;
+}
+
+/* ----- HELPERS ----- */
+
 void ConfigParser::_parse() {
   while (_current < _tokens.size())
     _parseServerBlock();
 }
 
 void ConfigParser::_advance() {
-  if (_current > _tokens.size())
-    throw std::runtime_error("_advance too far"); // TODO Format error
+  if (_current >= _tokens.size())
+    _parserThrow("Unexpected EOF after " + _getTokStr());
   _current++;
-  return;
 }
 
 void ConfigParser::_expect(std::string expected) {
-  if (_current < _tokens.size() && expected == _tokens[_current].tok) {
+  if (_current < _tokens.size() && expected == _getTokStr()) {
     this->_advance();
     return;
   }
 
+  if (_current < _tokens.size())
+    _parserThrow("expected " + expected + " but got " + _getTokStr());
+  else
+    _parserThrow("expected " + expected + " but reached end of file");
+}
+
+void ConfigParser::_parserThrow(std::string error) {
   std::stringstream ss;
-
-  ss << _configPath << " (line: " << _tokens[_current].line
-     << ") expected: " << expected << " but got " << _tokens[_current].tok;
-
-  // TODO: Separate EOF and expected != tok errors
+  ss << _configPath << ":" << _getTokLine() << " " << error;
 
   throw std::runtime_error(ss.str());
 }
@@ -61,9 +83,40 @@ void ConfigParser::_parseServerBlock() {
 
   ServerConfig sc;
 
-  // TODO: Dispatch func
-  while (_tokens[_current].tok != "}") {
+  while (_current < _tokens.size() && _getTokStr() != "}") {
+    std::string token = _getTokStr();
+
+    if (_serverFuncTable.count(token)) {
+      servFunc func = _serverFuncTable[token];
+      _advance();
+      (this->*func)(sc);
+    } else if (token == "location") {
+      _parseLocationBlock(sc);
+    } else
+      _parserThrow("Unknown parameter: " + token);
   }
+
+  _expect("}");
+  _config.push_back(sc);
 }
 
-void ConfigParser::_parseLocationBlock() { return; }
+void ConfigParser::_parseLocationBlock(ServerConfig &sc) {
+  /*
+    _advance();
+    // _parseLocationPath();
+    _expect("{");
+    Location loc;
+
+    while (_getTokStr() != "}") {
+      std::string token = _tokens[_current].tok;
+
+      if (_locFuncTable.count(token)) {
+        LocFunc func = _locFuncTable[token];
+        (this->*func)(loc);
+      } else
+        _parserThrow("Unknown directive in location block: " + token);
+    }
+
+    _expect("}");
+    sc.locations.push_back(loc); */
+}

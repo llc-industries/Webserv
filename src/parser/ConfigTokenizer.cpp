@@ -12,6 +12,8 @@ ConfigTokenizer::ConfigTokenizer(const std::string &configPath,
 
   LOG_INFO("Starting tokenization...");
   this->_tokenize();
+  if (tokens.empty())
+    throw std::runtime_error(configPath + " is empty");
   LOG_INFO("Tokenisation done. " << _tokens.size() << " tokens created");
 }
 

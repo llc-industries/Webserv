@@ -30,7 +30,7 @@ re: fclean all
 -include $(DEPS)
 
 debug: fclean
-debug: CFLAGS += -DDEBUG -g3 -fsanitize=address,undefined
+debug: CFLAGS += -DDEBUG -g3 # -fsanitize=address,undefined
 debug: all
 
 .PHONY: all clean fclean re debug

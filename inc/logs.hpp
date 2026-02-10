@@ -25,6 +25,9 @@
 #define LOG_INFO(x)                                                            \
   std::cout << "[ " << BLUE << "INFO" << RESET << " ] " << x << '\n'
 
+#define LOG_CONFIG(x)                                                          \
+  std::cout << "[ " << GREY << "CONFIG" << RESET << " ] " << x << '\n'
+
 #define LOG_WARN(x)                                                            \
   std::cout << "[ " << YELLOW << "WARNING" << RESET << " ] " << x << '\n'
 

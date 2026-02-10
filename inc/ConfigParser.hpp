@@ -3,6 +3,7 @@
 
 #include "ConfigStructs.hpp"
 #include "ConfigTokenizer.hpp"
+#include <cstdlib>
 #include <map>
 #include <sstream>
 
@@ -19,6 +20,8 @@ private:
 
   size_t _current; // Current token idx
   std::vector<Token> _tokens;
+  const std::string &_getTokStr() const;
+  size_t _getTokLine() const;
 
   typedef void (ConfigParser::*servFunc)(ServerConfig &);
   typedef void (ConfigParser::*LocFunc)(Location &);
@@ -30,8 +33,10 @@ private:
   void _parse();
   void _advance();
   void _expect(std::string expected);
+  void _parserThrow(std::string error);
+
   void _parseServerBlock();
-  void _parseLocationBlock();
+  void _parseLocationBlock(ServerConfig &sc);
 
   // Defined in ConfigParserHelpers.cpp
   void _parsePort(ServerConfig &sc);
