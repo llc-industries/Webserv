@@ -90,4 +90,11 @@ void ConfigTokenizer::_tokenize() {
   }
   if (buf.empty() == false)
     this->_tokens.push_back(Token(buf, curLine, startCol));
+
+  /* for (std::vector<Token>::iterator it = _tokens.begin(); it !=
+  _tokens.end();
+       ++it) {
+    std::cout << "conf/webserv.conf:" << it->line << ':' << it->col << ": "
+              << it->tok << std::endl;
+  } */
 }

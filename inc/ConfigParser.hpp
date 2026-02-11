@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <map>
 #include <sstream>
-#include <stdio.h>
 
 #define RESET "\033[0m"
 #define RED "\033[31m"
@@ -24,7 +23,7 @@ private:
   std::vector<ServerConfig> _config; // -> Parser output
   const std::string &_configPath;
 
-  // Token Helpers
+  // Token helpers
   size_t _current; // Current token idx
   std::vector<Token> _tokens;
   const std::string &_getTokStr() const;
