@@ -3,9 +3,14 @@
 
 #include "ConfigStructs.hpp"
 #include "ConfigTokenizer.hpp"
+#include <climits>
 #include <cstdlib>
 #include <map>
 #include <sstream>
+#include <stdio.h>
+
+#define RESET "\033[0m"
+#define RED "\033[31m"
 
 class ConfigParser {
 public:
@@ -15,30 +20,33 @@ public:
   const std::vector<ServerConfig> &getConfig() const { return _config; }
 
 private:
-  std::vector<ServerConfig> _config;
+  // Config
+  std::vector<ServerConfig> _config; // -> Parser output
   const std::string &_configPath;
 
+  // Token Helpers
   size_t _current; // Current token idx
   std::vector<Token> _tokens;
   const std::string &_getTokStr() const;
   size_t _getTokLine() const;
+  size_t _getTokCol() const;
 
+  // Parser function tables
   typedef void (ConfigParser::*servFunc)(ServerConfig &);
   typedef void (ConfigParser::*LocFunc)(Location &);
   std::map<std::string, servFunc> _serverFuncTable;
   std::map<std::string, LocFunc> _locFuncTable;
-
   void _initFuncTables();
 
+  // Parser logic
   void _parse();
   void _advance();
   void _expect(std::string expected);
   void _parserThrow(std::string error);
-
   void _parseServerBlock();
   void _parseLocationBlock(ServerConfig &sc);
 
-  // Defined in ConfigParserHelpers.cpp
+  // Parsing functions -- Defined in ConfigParserHelpers.cpp
   void _parsePort(ServerConfig &sc);
   void _parseBodySize(ServerConfig &sc);
   void _parseHost(ServerConfig &sc);

@@ -36,26 +36,28 @@ void ConfigTokenizer::_loadFile(const std::string &configPath) {
     throw std::runtime_error("Error while reading " + configPath);
   if (this->_fileContent.empty() == true)
     throw std::runtime_error(configPath + " is empty");
-
-  // std::cout << this->_fileContent; /* Dump file to stdout */
 }
 
 void ConfigTokenizer::_tokenize() {
 
   std::string buf;
   size_t curLine = 1;
+  size_t curCol = 0;
+  size_t startCol = 0;
 
   for (size_t i = 0; i < this->_fileContent.length(); i++) {
     char c = this->_fileContent[i];
+    curCol++;
 
     if (c == '\n') {
       curLine++;
+      curCol = 0;
       continue;
     }
 
     if (c == '#') {
       if (buf.empty() == false) {
-        this->_tokens.push_back(Token(buf, curLine));
+        this->_tokens.push_back(Token(buf, curLine, startCol));
         buf.clear();
       }
       while (i < this->_fileContent.length() && this->_fileContent[i] != '\n')
@@ -66,7 +68,7 @@ void ConfigTokenizer::_tokenize() {
 
     if (std::isspace(c)) {
       if (buf.empty() == false) {
-        this->_tokens.push_back(Token(buf, curLine));
+        this->_tokens.push_back(Token(buf, curLine, startCol));
         buf.clear();
       }
       continue;
@@ -74,20 +76,18 @@ void ConfigTokenizer::_tokenize() {
 
     if (c == '{' || c == '}' || c == ';') {
       if (buf.empty() == false) {
-        this->_tokens.push_back(Token(buf, curLine));
+        this->_tokens.push_back(Token(buf, curLine, startCol));
         buf.clear();
       }
-      this->_tokens.push_back(Token(std::string(1, c), curLine));
+      this->_tokens.push_back(Token(std::string(1, c), curLine, curCol));
       continue;
     }
+
+    if (buf.empty() == true)
+      startCol = curCol;
 
     buf += c;
   }
   if (buf.empty() == false)
-    this->_tokens.push_back(Token(buf, curLine));
-  // for (std::vector<Token>::iterator it = _tokens.begin(); it !=
-  // _tokens.end();
-  //      ++it) {
-  //   std::cout << it->tok << '\n';
-  // } /* Dump tokens to stdout */
+    this->_tokens.push_back(Token(buf, curLine, startCol));
 }

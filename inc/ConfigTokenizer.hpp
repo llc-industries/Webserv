@@ -11,8 +11,10 @@
 struct Token {
   std::string tok;
   size_t line;
+  size_t col;
 
-  Token(std::string token, size_t line) : tok(token), line(line) {}
+  Token(std::string token, size_t line, size_t col)
+      : tok(token), line(line), col(col) {}
 };
 
 class ConfigTokenizer {

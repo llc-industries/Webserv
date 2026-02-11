@@ -43,6 +43,12 @@ size_t ConfigParser::_getTokLine() const {
   return _tokens.back().line;
 }
 
+size_t ConfigParser::_getTokCol() const {
+  if (_current < _tokens.size())
+    return _tokens[_current].col;
+  return _tokens.back().col;
+}
+
 /* ----- HELPERS ----- */
 
 void ConfigParser::_parse() {
@@ -70,7 +76,8 @@ void ConfigParser::_expect(std::string expected) {
 
 void ConfigParser::_parserThrow(std::string error) {
   std::stringstream ss;
-  ss << _configPath << ":" << _getTokLine() << " " << error;
+  ss << RED "(" << _configPath << ':' << _getTokLine() << ':' << _getTokCol()
+     << ") -> " RESET << error;
 
   throw std::runtime_error(ss.str());
 }
@@ -93,7 +100,7 @@ void ConfigParser::_parseServerBlock() {
     } else if (token == "location") {
       _parseLocationBlock(sc);
     } else
-      _parserThrow("Unknown parameter: " + token);
+      _parserThrow("Unknown directive: " + token);
   }
 
   _expect("}");
