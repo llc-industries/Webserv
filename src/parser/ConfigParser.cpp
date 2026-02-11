@@ -62,7 +62,7 @@ void ConfigParser::_advance() {
   _current++;
 }
 
-void ConfigParser::_expect(std::string expected) {
+void ConfigParser::_expect(const std::string &expected) {
   if (_current < _tokens.size() && expected == _getTokStr()) {
     this->_advance();
     return;
@@ -74,10 +74,19 @@ void ConfigParser::_expect(std::string expected) {
     _parserThrow("expected " + expected + " but reached end of file");
 }
 
-void ConfigParser::_parserThrow(std::string error) {
+void ConfigParser::_parserThrow(const std::string &error) {
   std::stringstream ss;
   ss << RED "(" << _configPath << ':' << _getTokLine() << ':' << _getTokCol()
      << ") -> " RESET << error;
+
+  throw std::runtime_error(ss.str());
+}
+
+void ConfigParser::_parserThrowDup(const std::string &directive,
+                                   const std::string &context) {
+  std::stringstream ss;
+  ss << RED "(" << _configPath << ':' << _getTokLine() << ") -> " RESET
+     << "Duplicate " << directive << " directive in " << context << " block";
 
   throw std::runtime_error(ss.str());
 }

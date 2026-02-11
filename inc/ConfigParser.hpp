@@ -41,8 +41,10 @@ private:
   // Parser logic
   void _parse();
   void _advance();
-  void _expect(std::string expected);
-  void _parserThrow(std::string error);
+  void _expect(const std::string &expected);
+  void _parserThrow(const std::string &error);
+  void _parserThrowDup(const std::string &directive,
+                       const std::string &context);
   void _parseServerBlock();
   void _parseLocationBlock(ServerConfig &sc);
 

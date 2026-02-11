@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
     ConfigParser Config(configPath);
   } catch (const std::exception &e) {
     LOG_ERR(e.what());
+    return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;

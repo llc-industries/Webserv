@@ -1,7 +1,13 @@
 #include "ConfigParser.hpp"
 #include "logs.hpp"
 
+/* Check duplicates value at each functions, yes...  */
+
 void ConfigParser::_parsePort(ServerConfig &sc) {
+
+  if (sc.port != -1)
+    _parserThrowDup("listen", "server");
+
   std::string valueStr = _getTokStr();
 
   char *endptr = NULL;
@@ -19,7 +25,11 @@ void ConfigParser::_parsePort(ServerConfig &sc) {
   _expect(";");
 }
 
-void ConfigParser::_parseBodySize(ServerConfig &sc) {}
+void ConfigParser::_parseBodySize(ServerConfig &sc) {
+
+  _advance();
+  _expect(";");
+}
 
 void ConfigParser::_parseHost(ServerConfig &sc) {}
 
