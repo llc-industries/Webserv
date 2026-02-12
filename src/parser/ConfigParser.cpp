@@ -105,6 +105,8 @@ void ConfigParser::_parseServerBlock() {
     if (_serverFuncTable.count(token)) {
       servFunc func = _serverFuncTable[token];
       _advance();
+      if (_getTokStr() == ";")
+        _parserThrow(token + " directive can't be empty");
       (this->*func)(sc);
     } else if (token == "location") {
       _parseLocationBlock(sc);

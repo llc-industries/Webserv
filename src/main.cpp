@@ -9,8 +9,8 @@ std::string findConfigFile(int argc, char **argv) {
 
   if (argc < 2) {
     LOG_WARN("No arguments provided, using default configuration file");
-    LOG_INFO("Using conf/webserv.conf as config file");
-    configPath = "conf/webserv.conf";
+    LOG_INFO("Using conf/testserver.conf as config file");
+    configPath = "conf/testserver.conf";
   } else if (argc > 2) {
     LOG_WARN("Too many arguments provided");
     LOG_INFO("Using \"" << argv[1] << "\" as config file");

@@ -1,8 +1,6 @@
 #include "ConfigParser.hpp"
 #include "logs.hpp"
 
-/* Check duplicates value at each functions, yes...  */
-
 void ConfigParser::_parsePort(ServerConfig &sc) {
   if (sc.port != -1)
     _parserThrowDup("listen", "server");
@@ -14,7 +12,7 @@ void ConfigParser::_parsePort(ServerConfig &sc) {
   if (valueStr.empty() || *endptr != '\0')
     _parserThrow("Invalid listen directive: " + valueStr);
   else if (port < 0 || port > 65535)
-    _parserThrow("Port is out of range (0-65535): " + valueStr);
+    _parserThrow("Port " + valueStr + " is out of range (0-65535)");
 
   sc.port = static_cast<int>(port);
 
@@ -61,7 +59,7 @@ void ConfigParser::_parseHost(ServerConfig &sc) {
     if (curNb == endptr)
       _parserThrow("Invalid host format (empty block): " + host);
     if (byte < 0 || byte > 255)
-      _parserThrow("Invalid host format (Out of range (0 - 255)): " + host);
+      _parserThrow("Invalid host format (out of range (0 - 255)): " + host);
     if (i < 3) {
       if (*endptr != '.')
         _parserThrow("Invalid host format (expected . separator): " + host);
@@ -77,10 +75,60 @@ void ConfigParser::_parseHost(ServerConfig &sc) {
   _expect(";");
 }
 
-void ConfigParser::_parseServerName(ServerConfig &sc) {}
+void ConfigParser::_parseServerName(ServerConfig &sc) {
+  if (sc.serverName.empty() == false)
+    _parserThrowDup("server_name", "server");
 
-void ConfigParser::_parseRoot(ServerConfig &sc) {}
+  sc.serverName = _getTokStr();
 
-void ConfigParser::_parseIndex(ServerConfig &sc) {}
+  _advance();
+  _expect(";");
+}
 
-void ConfigParser::_parseErrorPages(ServerConfig &sc) {}
+void ConfigParser::_parseRoot(ServerConfig &sc) {
+  if (sc.root.empty() == false)
+    _parserThrowDup("root", "server");
+
+  sc.root = _getTokStr();
+
+  _advance();
+  _expect(";");
+}
+
+void ConfigParser::_parseIndex(ServerConfig &sc) {
+  while (_current < _tokens.size() && _getTokStr() != ";") {
+    sc.index.push_back(_getTokStr());
+    _advance();
+  }
+
+  _expect(";");
+}
+
+void ConfigParser::_parseErrorPages(ServerConfig &sc) {
+  std::vector<std::string> args;
+
+  while (_current < _tokens.size() && _getTokStr() != ";") {
+    args.push_back(_getTokStr());
+    _advance();
+  }
+
+  if (args.size() < 2)
+    _parserThrow("error_pages requires 2 arguments (error - page)");
+
+  std::string url = args.back();
+  args.pop_back();
+
+  for (size_t i = 0; i < args.size(); i++) {
+    char *endptr = NULL;
+    long code = std::strtol(args[i].c_str(), &endptr, 10);
+
+    if (*endptr != '\0')
+      _parserThrow("Invalid error code " + args[i]);
+    if (code < 300 || code > 599)
+      _parserThrow("Error code " + args[i] + " is out of range (300 - 599) ");
+
+    sc.errPages[static_cast<int>(code)] = url;
+  }
+
+  _expect(";");
+}
