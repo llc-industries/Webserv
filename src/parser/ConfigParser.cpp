@@ -23,7 +23,7 @@ void ConfigParser::_initFuncTables() {
   _serverFuncTable["root"] = &ConfigParser::_parseRoot;
   _serverFuncTable["index"] = &ConfigParser::_parseIndex;
 
-  // _locFuncTable[""] = &ConfigParser::; ...
+  _locFuncTable["allow_methods"] = &ConfigParser::_parseLocMethods;
 }
 
 /* ----- GETTERS ----- */
@@ -119,22 +119,25 @@ void ConfigParser::_parseServerBlock() {
 }
 
 void ConfigParser::_parseLocationBlock(ServerConfig &sc) {
-  /*
-    _advance();
-    // _parseLocationPath();
-    _expect("{");
-    Location loc;
+  Location loc;
 
-    while (_getTokStr() != "}") {
-      std::string token = _tokens[_current].tok;
+  _advance();
+  _parseLocPath(loc);
+  _expect("{");
 
-      if (_locFuncTable.count(token)) {
-        LocFunc func = _locFuncTable[token];
-        (this->*func)(loc);
-      } else
-        _parserThrow("Unknown directive in location block: " + token);
-    }
+  while (_current < _tokens.size() && _getTokStr() != "}") {
+    std::string token = _tokens[_current].tok;
 
-    _expect("}");
-    sc.locations.push_back(loc); */
+    if (_locFuncTable.count(token)) {
+      LocFunc func = _locFuncTable[token];
+      _advance();
+      if (_getTokStr() == ";")
+        _parserThrow(token + " directive can't be empty");
+      (this->*func)(loc);
+    } else
+      _parserThrow("Unknown directive in location block: " + token);
+  }
+
+  _expect("}");
+  sc.locations.push_back(loc);
 }

@@ -1,6 +1,8 @@
 #include "ConfigParser.hpp"
 #include "logs.hpp"
 
+/* -------- Server functions -------- */
+
 void ConfigParser::_parsePort(ServerConfig &sc) {
   if (sc.port != -1)
     _parserThrowDup("listen", "server");
@@ -132,3 +134,77 @@ void ConfigParser::_parseErrorPages(ServerConfig &sc) {
 
   _expect(";");
 }
+
+/* -------- Location functions -------- */
+
+void ConfigParser::_parseLocPath(Location &loc) {
+  if (_getTokStr() == "{" || _getTokStr() == ";")
+    _parserThrow("location block needs a pattern");
+
+  loc.path = _getTokStr();
+  _advance();
+}
+
+void ConfigParser::_parseLocMethods(Location &loc) {
+  if (loc.methods.empty() == false)
+    _parserThrowDup("allow_methods", "location");
+
+  while (_current < _tokens.size() && _getTokStr() != ";") {
+    std::string arg = _getTokStr();
+    if (arg != "GET" && arg != "POST" && arg != "DELETE")
+      _parserThrow("Unknown argument in allow_methods directive " + arg);
+
+    if (std::find(loc.methods.begin(), loc.methods.end(), arg) ==
+        loc.methods.end())
+      loc.methods.push_back(arg);
+
+    _advance();
+  }
+
+  _expect(";");
+}
+
+/* void ConfigParser::_parseLocRet(Location &loc) {
+  if (loc.ret.first != 0)
+    _parserThrowDup("return", "location");
+
+  _expect(";");
+}
+
+void ConfigParser::_parseLocCgiPath(Location &loc) {
+  if (loc.cgiPath.empty() == false)
+    _parserThrowDup("cgi_pass", "location");
+
+  _expect(";");
+}
+
+void ConfigParser::_parseLocPost(Location &loc) {
+  if (loc.postPath.empty() == false)
+    _parserThrowDup("", "location");
+
+  _expect(";");
+}
+
+void ConfigParser::_parseLocAutoIndex(Location &loc) {
+  if (loc..empty() == false)
+    _parserThrowDup("", "location");
+
+  _expect(";");
+}
+
+void ConfigParser::_parseLocRoot(Location &loc) {
+  if (loc.root.empty() == false)
+    _parserThrowDup("root", "location");
+
+  loc.root = _getTokStr();
+
+  _advance();
+  _expect(";");
+}
+
+void ConfigParser::_parseLocIndex(Location &loc) {
+  if (loc..empty() == false)
+    _parserThrowDup("", "location");
+
+  _expect(";");
+} */

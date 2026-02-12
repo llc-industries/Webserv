@@ -3,6 +3,7 @@
 
 #include "ConfigStructs.hpp"
 #include "ConfigTokenizer.hpp"
+#include <algorithm>
 #include <climits>
 #include <cstdlib>
 #include <map>
@@ -55,6 +56,15 @@ private:
   void _parseRoot(ServerConfig &sc);
   void _parseIndex(ServerConfig &sc);
   void _parseErrorPages(ServerConfig &sc);
+
+  void _parseLocPath(Location &loc);
+  void _parseLocMethods(Location &loc);
+  /*   void _parseLocRet(Location &loc);
+    void _parseLocCgiPath(Location &loc);
+    void _parseLocPost(Location &loc);
+    void _parseLocAutoIndex(Location &loc);
+    void _parseLocRoot(Location &loc);
+    void _parseLocIndex(Location &loc); */
 };
 
 #endif /* CONFIG_PARSER_HPP */
