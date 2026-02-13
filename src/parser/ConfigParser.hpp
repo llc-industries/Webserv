@@ -48,7 +48,7 @@ private:
   void _parseServerBlock();
   void _parseLocationBlock(ServerConfig &sc);
 
-  // Parsing functions -- Defined in ConfigParserHelpers.cpp
+  // Parsing functions -- Defined in ConfigParserUtils.cpp
   void _parsePorts(ServerConfig &sc);
   void _parseBodySize(ServerConfig &sc);
   void _parseHost(ServerConfig &sc);

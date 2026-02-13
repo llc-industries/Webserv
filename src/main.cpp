@@ -1,5 +1,5 @@
-#include "ConfigParser.hpp"
 #include "logs.hpp"
+#include "parser/ConfigParser.hpp"
 
 #include <iostream>
 #include <stdlib.h>
