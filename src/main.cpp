@@ -24,7 +24,7 @@ std::string findConfigFile(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-  PRINT_HEADER;
+  // PRINT_HEADER;
   const std::string configPath = findConfigFile(argc, argv);
 
   try {
