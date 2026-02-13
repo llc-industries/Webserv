@@ -1,6 +1,8 @@
 #include "ConfigParser.hpp"
 #include "logs.hpp"
 
+/* ----- CONSTRUCTOR ----- */
+
 ConfigParser::ConfigParser(const std::string &configPath)
     : _configPath(configPath), _current(0) {
 
@@ -12,24 +14,7 @@ ConfigParser::ConfigParser(const std::string &configPath)
   LOG_INFO("Parser done");
 }
 
-/* ----- INIT ----- */
-
-void ConfigParser::_initFuncTables() {
-  _serverFuncTable["listen"] = &ConfigParser::_parsePort;
-  _serverFuncTable["host"] = &ConfigParser::_parseHost;
-  _serverFuncTable["server_name"] = &ConfigParser::_parseServerName;
-  _serverFuncTable["error_page"] = &ConfigParser::_parseErrorPages;
-  _serverFuncTable["client_max_body_size"] = &ConfigParser::_parseBodySize;
-  _serverFuncTable["root"] = &ConfigParser::_parseRoot;
-  _serverFuncTable["index"] = &ConfigParser::_parseIndex;
-
-  _locFuncTable["allow_methods"] = &ConfigParser::_parseLocMethods;
-}
-
-/* ----- GETTERS ----- */
-
-// Both returns the last token if _current >=
-// _tokens.size()
+/* ----- TOKEN HELPERS ----- */
 
 const std::string &ConfigParser::_getTokStr() const {
   if (_current < _tokens.size())
@@ -49,7 +34,27 @@ size_t ConfigParser::_getTokCol() const {
   return _tokens.back().col;
 }
 
-/* ----- HELPERS ----- */
+/* ----- FUNC TABLE INIT ----- */
+
+void ConfigParser::_initFuncTables() {
+  _serverFuncTable["listen"] = &ConfigParser::_parsePorts;
+  _serverFuncTable["host"] = &ConfigParser::_parseHost;
+  _serverFuncTable["server_name"] = &ConfigParser::_parseServerName;
+  _serverFuncTable["error_page"] = &ConfigParser::_parseErrorPages;
+  _serverFuncTable["client_max_body_size"] = &ConfigParser::_parseBodySize;
+  _serverFuncTable["root"] = &ConfigParser::_parseRoot;
+  _serverFuncTable["index"] = &ConfigParser::_parseIndex;
+
+  _locFuncTable["allow_methods"] = &ConfigParser::_parseLocMethods;
+  _locFuncTable["return"] = &ConfigParser::_parseLocRet;
+  _locFuncTable["cgi_pass"] = &ConfigParser::_parseLocCgiPath;
+  _locFuncTable["upload_store"] = &ConfigParser::_parseLocPost;
+  _locFuncTable["autoindex"] = &ConfigParser::_parseLocAutoIndex;
+  _locFuncTable["root"] = &ConfigParser::_parseLocRoot;
+  _locFuncTable["index"] = &ConfigParser::_parseLocIndex;
+}
+
+/* ----- PARSER LOGIC ----- */
 
 void ConfigParser::_parse() {
   while (_current < _tokens.size())
@@ -91,8 +96,6 @@ void ConfigParser::_parserThrowDup(const std::string &directive,
   throw std::runtime_error(ss.str());
 }
 
-/* ----- ACTUAL PARSER ----- */
-
 void ConfigParser::_parseServerBlock() {
   _expect("server");
   _expect("{");
@@ -126,7 +129,7 @@ void ConfigParser::_parseLocationBlock(ServerConfig &sc) {
   _expect("{");
 
   while (_current < _tokens.size() && _getTokStr() != "}") {
-    std::string token = _tokens[_current].tok;
+    std::string token = _getTokStr();
 
     if (_locFuncTable.count(token)) {
       LocFunc func = _locFuncTable[token];

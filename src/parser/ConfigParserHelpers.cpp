@@ -3,22 +3,20 @@
 
 /* -------- Server functions -------- */
 
-void ConfigParser::_parsePort(ServerConfig &sc) {
-  if (sc.port != -1)
-    _parserThrowDup("listen", "server");
+void ConfigParser::_parsePorts(ServerConfig &sc) {
+  while (_current < _tokens.size() && _getTokStr() != ";") {
+    std::string token = _getTokStr();
+    char *endptr = NULL;
+    long port = std::strtol(token.c_str(), &endptr, 10);
 
-  std::string valueStr = _getTokStr();
-  char *endptr = NULL;
-  long port = std::strtol(valueStr.c_str(), &endptr, 10);
-
-  if (valueStr.empty() || *endptr != '\0')
-    _parserThrow("Invalid listen directive: " + valueStr);
-  else if (port < 0 || port > 65535)
-    _parserThrow("Port " + valueStr + " is out of range (0-65535)");
-
-  sc.port = static_cast<int>(port);
-
-  _advance();
+    if (*endptr != '\0')
+      _parserThrow("Invalid port value " + token + " (trailing characters)");
+    if (port < 0 || port > 65535)
+      _parserThrow("Port " + token + " is out of range (0 - 65535)");
+    if (std::find(sc.ports.begin(), sc.ports.end(), port) == sc.ports.end())
+      sc.ports.push_back(static_cast<int>(port));
+    _advance();
+  }
   _expect(";");
 }
 
@@ -152,7 +150,7 @@ void ConfigParser::_parseLocMethods(Location &loc) {
   while (_current < _tokens.size() && _getTokStr() != ";") {
     std::string arg = _getTokStr();
     if (arg != "GET" && arg != "POST" && arg != "DELETE")
-      _parserThrow("Unknown argument in allow_methods directive " + arg);
+      _parserThrow("Unknown argument " + arg + " in allow_methods directive");
 
     if (std::find(loc.methods.begin(), loc.methods.end(), arg) ==
         loc.methods.end())
@@ -164,9 +162,25 @@ void ConfigParser::_parseLocMethods(Location &loc) {
   _expect(";");
 }
 
-/* void ConfigParser::_parseLocRet(Location &loc) {
-  if (loc.ret.first != 0)
+void ConfigParser::_parseLocRet(Location &loc) {
+  if (loc.ret.first != -1)
     _parserThrowDup("return", "location");
+
+  std::string token = _getTokStr();
+  char *endptr = NULL;
+  long port = std::strtol(token.c_str(), &endptr, 10);
+  if (*endptr != '\0')
+    _parserThrow("Invalid code: " + token);
+  if (port < 100 || port > 599)
+    _parserThrow("Code " + token + " is out of range (100 - 599)");
+
+  loc.ret.first = static_cast<int>(port);
+
+  _advance();
+  if (_getTokStr() != ";") {
+    loc.ret.second = _getTokStr();
+    _advance();
+  }
 
   _expect(";");
 }
@@ -175,20 +189,33 @@ void ConfigParser::_parseLocCgiPath(Location &loc) {
   if (loc.cgiPath.empty() == false)
     _parserThrowDup("cgi_pass", "location");
 
+  loc.cgiPath = _getTokStr();
+
+  _advance();
   _expect(";");
 }
 
 void ConfigParser::_parseLocPost(Location &loc) {
-  if (loc.postPath.empty() == false)
-    _parserThrowDup("", "location");
+  if (loc.uploadPath.empty() == false)
+    _parserThrowDup("upload_store", "location");
 
+  loc.uploadPath = _getTokStr();
+
+  _advance();
   _expect(";");
 }
 
 void ConfigParser::_parseLocAutoIndex(Location &loc) {
-  if (loc..empty() == false)
-    _parserThrowDup("", "location");
+  std::string tok = _getTokStr();
 
+  if (tok == "y" || tok == "yes" || tok == "true" || tok == "on")
+    loc.autoindex = true;
+  else if (tok == "n" || tok == "no" || tok == "false" || tok == "off")
+    loc.autoindex = false;
+  else
+    _parserThrow("Invalid autoindex value: " + tok);
+
+  _advance();
   _expect(";");
 }
 
@@ -203,8 +230,10 @@ void ConfigParser::_parseLocRoot(Location &loc) {
 }
 
 void ConfigParser::_parseLocIndex(Location &loc) {
-  if (loc..empty() == false)
-    _parserThrowDup("", "location");
+  while (_current < _tokens.size() && _getTokStr() != ";") {
+    loc.index.push_back(_getTokStr());
+    _advance();
+  }
 
   _expect(";");
-} */
+}

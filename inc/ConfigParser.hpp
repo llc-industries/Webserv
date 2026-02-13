@@ -49,22 +49,21 @@ private:
   void _parseLocationBlock(ServerConfig &sc);
 
   // Parsing functions -- Defined in ConfigParserHelpers.cpp
-  void _parsePort(ServerConfig &sc);
+  void _parsePorts(ServerConfig &sc);
   void _parseBodySize(ServerConfig &sc);
   void _parseHost(ServerConfig &sc);
   void _parseServerName(ServerConfig &sc);
   void _parseRoot(ServerConfig &sc);
   void _parseIndex(ServerConfig &sc);
   void _parseErrorPages(ServerConfig &sc);
-
   void _parseLocPath(Location &loc);
   void _parseLocMethods(Location &loc);
-  /*   void _parseLocRet(Location &loc);
-    void _parseLocCgiPath(Location &loc);
-    void _parseLocPost(Location &loc);
-    void _parseLocAutoIndex(Location &loc);
-    void _parseLocRoot(Location &loc);
-    void _parseLocIndex(Location &loc); */
+  void _parseLocRet(Location &loc);
+  void _parseLocCgiPath(Location &loc);
+  void _parseLocPost(Location &loc);
+  void _parseLocAutoIndex(Location &loc);
+  void _parseLocRoot(Location &loc);
+  void _parseLocIndex(Location &loc);
 };
 
 #endif /* CONFIG_PARSER_HPP */
