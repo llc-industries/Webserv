@@ -1,5 +1,6 @@
 #include "logs.hpp"
 #include "parser/ConfigParser.hpp"
+#include "parser/ConfigPrint.hpp"
 
 #include <iostream>
 #include <stdlib.h>
@@ -29,6 +30,7 @@ int main(int argc, char **argv) {
 
   try {
     ConfigParser Config(configPath);
+    ConfigPrint Print(Config.getConfig());
   } catch (const std::exception &e) {
     LOG_ERR(e.what());
     return EXIT_FAILURE;
