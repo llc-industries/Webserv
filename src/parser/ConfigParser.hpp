@@ -47,8 +47,9 @@ private:
                        const std::string &context);
   void _parseServerBlock();
   void _parseLocationBlock(ServerConfig &sc);
+  void _checkDefaults();
 
-  // Parsing functions -- Defined in ConfigParserUtils.cpp
+  // Parsing helpers -- Defined in ConfigParserUtils.cpp
   void _parsePorts(ServerConfig &sc);
   void _parseBodySize(ServerConfig &sc);
   void _parseHost(ServerConfig &sc);

@@ -1,7 +1,7 @@
 NAME := webserv
 CC := c++
 # TODO: Add -Werror when done
-CFLAGS := -std=c++98 -Wall -Wextra -MMD -Iincludes -O3
+CFLAGS := -std=c++98 -Wall -Wextra -MMD -Iincludes
 
 SRCS := $(shell find src -name "*.cpp")
 OBJ_DIR := build
@@ -13,7 +13,7 @@ default: debug
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) -flto $(OBJ) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)

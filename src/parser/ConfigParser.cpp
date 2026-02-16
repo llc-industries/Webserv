@@ -11,6 +11,7 @@ ConfigParser::ConfigParser(const std::string &configPath)
   LOG_INFO("Starting parser...");
   this->_initFuncTables();
   this->_parse();
+  this->_checkDefaults();
   LOG_INFO("Parser done");
 }
 
@@ -144,3 +145,5 @@ void ConfigParser::_parseLocationBlock(ServerConfig &sc) {
   _expect("}");
   sc.locations.push_back(loc);
 }
+
+void ConfigParser::_checkDefaults() {}
