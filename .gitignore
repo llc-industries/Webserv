@@ -1,3 +1,4 @@
 build/
 webserv
 vgcore*
+nginx

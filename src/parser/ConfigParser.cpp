@@ -1,6 +1,9 @@
 #include "ConfigParser.hpp"
 #include "logs.hpp"
 
+typedef std::vector<ServerConfig>::iterator it_config;
+typedef std::vector<Location>::iterator it_loc;
+
 /* ----- CONSTRUCTOR ----- */
 
 ConfigParser::ConfigParser(const std::string &configPath)
@@ -146,4 +149,48 @@ void ConfigParser::_parseLocationBlock(ServerConfig &sc) {
   sc.locations.push_back(loc);
 }
 
-void ConfigParser::_checkDefaults() {}
+void ConfigParser::_checkDefaults() {
+  std::vector<int> allPorts;
+
+  for (size_t i = 0; i < _config.size(); i++) {
+    ServerConfig &sc = _config[i];
+    std::string block(1, i + 49); // Ugly
+
+    if (sc.host.empty()) {
+      LOG_WARN("No host value in server block " + block +
+               "... Using localhost as default");
+      sc.host = "127.0.0.1";
+    }
+    if (sc.root.empty())
+      throw std::runtime_error("No root value in server block " + block);
+    if (sc.index.empty()) {
+      LOG_WARN("No index value in server block " + block +
+               "... Using index.html as default");
+      sc.index.push_back("index.html");
+    }
+    if (sc.maxBodySize == -1) {
+      LOG_WARN("No max body size for server block " + block +
+               "... Using 1MB as default");
+      sc.maxBodySize = 1000000;
+    }
+
+    for (size_t k = 0; k < sc.ports.size(); k++) {
+      int port = sc.ports[k];
+      if (std::find(allPorts.begin(), allPorts.end(), port) != allPorts.end()) {
+        std::stringstream ss;
+        ss << "Duplicate port " << port << " in server block " << block;
+        throw std::runtime_error(ss.str());
+      }
+      allPorts.push_back(port);
+    }
+
+    for (size_t j = 0; j < _config[i].locations.size(); j++) {
+      Location &loc = sc.locations[j];
+
+      if (loc.root.empty())
+        loc.root = sc.root;
+      if (loc.index.empty())
+        loc.index = sc.index;
+    }
+  }
+}
