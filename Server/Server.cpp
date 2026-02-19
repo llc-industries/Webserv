@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 15:34:07 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/19 22:18:21 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/19 22:52:37 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,41 @@ void Server::closeClient(int client_fd)
 void Server::sendResponse(int client_fd)
 {
   ClientData &client = _clients[client_fd];
+  //logique POST
+  if (client.method == "POST"){
+    size_t body_start = client.request.find("\r\n\r\n");
+    if (body_start != std::string::npos){
+        body_start += 4;
+        std::string body_content = client.request.substr(body_start);
+        std::string save_path = "./www/uploaded_file.txt";
+        std::ofstream outfile(save_path.c_str(), std::ios::binary);
+        std::ostringstream response;
+        if (outfile.is_open())
+        {
+          outfile.write(body_content.c_str(), body_content.size());
+          outfile.close();
+          std::string response_body = "<html><body><h1>Upload réussi ! Fichier sauvegarde.</h1></body></html>";
+          response << "HTTP/1.1 201 Created\r\n";
+          response << "Content-Type: text/html\r\n";
+          response << "Content-Length: " << response_body.size() << "\r\n";
+          response << "Connection: close\r\n\r\n";
+          response << response_body;
+        }
+        else {
+          std::string error_body = "<html><body><h1>500 Internal Server Error</h1></body></html>";
+              response << "HTTP/1.1 500 Internal Server Error\r\n";
+              response << "Content-Type: text/html\r\n";
+              response << "Content-Length: " << error_body.size() << "\r\n";
+              response << "Connection: close\r\n\r\n";
+              response << error_body;
+          }
+          send(client_fd, response.str().c_str(), response.str().size(), 0);
+      }
+      closeClient(client_fd);
+      return;
+  }
   
+  //logic GET
   std::string root = "./www";
   std::string full_path = root + client.path;
 
