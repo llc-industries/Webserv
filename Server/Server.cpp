@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 15:34:07 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/15 17:36:06 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/19 22:18:21 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,7 +190,7 @@ void Server::sendResponse(int client_fd)
     std::string body = file_content.str();
     std::ostringstream header;
     header << "HTTP/1.1 200 OK\r\n";
-    header << "Content-Type: text/html\r\n";
+    header << "Content-Type: "<< getContentType(full_path) << "\r\n";
     header << "Content-Length: " << body.size() << "\r\n";
     header << "Connection: close\r\n\r\n"; 
     std::string full_res = header.str() + body;
@@ -222,4 +222,23 @@ void Server::parseRequestHeader(int client_fd)
   }
   Client.header_parsed = true;
   std::cout << "[PARSED] Method: " << Client.method << " Path: " << Client.path << std::endl;
+}
+
+std::string Server::getContentType(const std::string& path) {
+  size_t dotPos = path.find_last_of(".");
+  if (dotPos == std::string::npos) return "text/plain";
+
+  std::string ext = path.substr(dotPos);
+  //TODO: utiliser des map apres si g pas la flemmme
+  if (ext == ".html" || ext == ".htm") return "text/html";
+  if (ext == ".css") return "text/css";
+  if (ext == ".js") return "application/javascript";
+  if (ext == ".png") return "image/png";
+  if (ext == ".jpg" || ext == ".jpeg") return "image/jpeg";
+  if (ext == ".gif") return "image/gif";
+  if (ext == "ico") return "image/x-icon";
+  if (ext == ".pdf") return "application/pdf";
+  if (ext == ".txt") return "text/plain";
+
+  return "application/octet-stream";
 }

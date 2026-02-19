@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 19:26:19 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/15 16:48:31 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/19 21:45:36 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ public:
   void closeClient(int client_fd);
   void sendResponse(int client_fd);
   void parseRequestHeader(int client_fd);
+  std::string getContentType(const std::string& path);
 };
 
 #endif
