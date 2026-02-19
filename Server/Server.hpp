@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 19:26:19 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/19 21:45:36 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/19 23:01:59 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <vector>
 #include <cstdlib>
+#include <cstdio>
 
 #define MAX_EVENTS 64
 

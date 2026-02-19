@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 15:34:07 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/19 22:52:37 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/19 23:05:18 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,6 +163,35 @@ void Server::closeClient(int client_fd)
 void Server::sendResponse(int client_fd)
 {
   ClientData &client = _clients[client_fd];
+  std::string root = "./www";
+  //loqique DELETE
+  if (client.method == "DELETE") {
+      std::string full_path = root + client.path;
+      std::ostringstream response;
+
+      // std::remove renvoie 0 si la suppression a réussi
+      if (std::remove(full_path.c_str()) == 0) {
+          std::string response_body = "<html><body><h1>200 OK : Fichier supprime avec succes !</h1></body></html>";
+          response << "HTTP/1.1 200 OK\r\n";
+          response << "Content-Type: text/html\r\n";
+          response << "Content-Length: " << response_body.size() << "\r\n";
+          response << "Connection: close\r\n\r\n";
+          response << response_body;
+      } else {
+          // Si renvoie autre chose que 0, le fichier n'existe pas ou tu n'as pas les droits
+          std::string error_body = "<html><body><h1>404 Not Found (ou droits insuffisants)</h1></body></html>";
+          response << "HTTP/1.1 404 Not Found\r\n";
+          response << "Content-Type: text/html\r\n";
+          response << "Content-Length: " << error_body.size() << "\r\n";
+          response << "Connection: close\r\n\r\n";
+          response << error_body;
+      }
+      
+      send(client_fd, response.str().c_str(), response.str().size(), 0);
+      closeClient(client_fd);
+      return; // On arrête là pour le DELETE
+  }
+  
   //logique POST
   if (client.method == "POST"){
     size_t body_start = client.request.find("\r\n\r\n");
@@ -198,7 +227,6 @@ void Server::sendResponse(int client_fd)
   }
   
   //logic GET
-  std::string root = "./www";
   std::string full_path = root + client.path;
 
   if (client.path == "/")
