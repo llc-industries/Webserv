@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 15:34:07 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/19 23:05:18 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/20 00:21:35 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,40 +26,38 @@ Server::~Server() {
 void Server::setupServer(std::vector<int> ports) {
   _epoll_fd = epoll_create1(0);
   if (_epoll_fd == -1) {
-    std::cerr << "Epoll creation fail\n";
-    exit(EXIT_FAILURE);
+    throw SetupException("epoll_create1 failed");
   }
   for (size_t i = 0; i < ports.size(); i++){
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1) {
-      std::cerr << "Socket creation failed\n";
-      continue;
+      throw SetupException("Socket creation failed");
     }
     int opt = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-      std::cerr << "Socket setting option failed\n";
+    {
+      throw SetupException("socket option failed (re-use address)");
+    }
+      
     sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_port = htons(ports[i]);
     address.sin_addr.s_addr = INADDR_ANY;
     if (bind(server_fd, (sockaddr *)&address, sizeof(address)) < 0) {
-      std::cout << "bind failed at port" << ports[i] << "\n";
       close(server_fd);
-      continue;
+      throw SetupException("bind faailed");
     }
     if (listen(server_fd, SOMAXCONN) < 0) {
-      std::cout << "listening failed\n";
       close(server_fd);
-      continue;
+      throw SetupException("listen failed");
     }
     fcntl(server_fd, F_SETFL, O_NONBLOCK);
     epoll_event ev;
     ev.events = EPOLLIN;
     ev.data.fd = server_fd;
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, server_fd, &ev) == -1) {
-      std::cout << "epoll ctl bind failed\n";
       close(server_fd);
-      continue;
+      throw SetupException("epoll control failed");
     }
     _server_fds.push_back(server_fd);
   }
@@ -157,76 +155,37 @@ void Server::closeClient(int client_fd)
 {
   epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, client_fd, NULL);
   close(client_fd);
+  _clients.erase(client_fd);
   std::cout << "[INFO] Connection closed for fd:" << client_fd << "\n";
 }
 
-void Server::sendResponse(int client_fd)
-{
+void Server::sendResponse(int client_fd) {
   ClientData &client = _clients[client_fd];
-  std::string root = "./www";
-  //loqique DELETE
-  if (client.method == "DELETE") {
-      std::string full_path = root + client.path;
-      std::ostringstream response;
 
-      // std::remove renvoie 0 si la suppression a réussi
-      if (std::remove(full_path.c_str()) == 0) {
-          std::string response_body = "<html><body><h1>200 OK : Fichier supprime avec succes !</h1></body></html>";
-          response << "HTTP/1.1 200 OK\r\n";
-          response << "Content-Type: text/html\r\n";
-          response << "Content-Length: " << response_body.size() << "\r\n";
-          response << "Connection: close\r\n\r\n";
-          response << response_body;
-      } else {
-          // Si renvoie autre chose que 0, le fichier n'existe pas ou tu n'as pas les droits
-          std::string error_body = "<html><body><h1>404 Not Found (ou droits insuffisants)</h1></body></html>";
-          response << "HTTP/1.1 404 Not Found\r\n";
-          response << "Content-Type: text/html\r\n";
-          response << "Content-Length: " << error_body.size() << "\r\n";
-          response << "Connection: close\r\n\r\n";
-          response << error_body;
-      }
+  if (client.method == "GET") {
+      handleGet(client_fd);
+  } else if (client.method == "POST") {
+      handlePost(client_fd);
+  } else if (client.method == "DELETE") {
+      handleDelete(client_fd);
+  } else {
+      // Si la méthode n'est pas reconnue
+      std::string error_body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+      std::ostringstream response;
+      response << "HTTP/1.1 405 Method Not Allowed\r\n";
+      response << "Content-Type: text/html\r\n";
+      response << "Content-Length: " << error_body.size() << "\r\n";
+      response << "Connection: close\r\n\r\n";
+      response << error_body;
       
       send(client_fd, response.str().c_str(), response.str().size(), 0);
       closeClient(client_fd);
-      return; // On arrête là pour le DELETE
   }
-  
-  //logique POST
-  if (client.method == "POST"){
-    size_t body_start = client.request.find("\r\n\r\n");
-    if (body_start != std::string::npos){
-        body_start += 4;
-        std::string body_content = client.request.substr(body_start);
-        std::string save_path = "./www/uploaded_file.txt";
-        std::ofstream outfile(save_path.c_str(), std::ios::binary);
-        std::ostringstream response;
-        if (outfile.is_open())
-        {
-          outfile.write(body_content.c_str(), body_content.size());
-          outfile.close();
-          std::string response_body = "<html><body><h1>Upload réussi ! Fichier sauvegarde.</h1></body></html>";
-          response << "HTTP/1.1 201 Created\r\n";
-          response << "Content-Type: text/html\r\n";
-          response << "Content-Length: " << response_body.size() << "\r\n";
-          response << "Connection: close\r\n\r\n";
-          response << response_body;
-        }
-        else {
-          std::string error_body = "<html><body><h1>500 Internal Server Error</h1></body></html>";
-              response << "HTTP/1.1 500 Internal Server Error\r\n";
-              response << "Content-Type: text/html\r\n";
-              response << "Content-Length: " << error_body.size() << "\r\n";
-              response << "Connection: close\r\n\r\n";
-              response << error_body;
-          }
-          send(client_fd, response.str().c_str(), response.str().size(), 0);
-      }
-      closeClient(client_fd);
-      return;
-  }
-  
-  //logic GET
+}
+
+void Server::handleGet(int client_fd) {
+  ClientData &client = _clients[client_fd];
+  std::string root = "./www";
   std::string full_path = root + client.path;
 
   if (client.path == "/")
@@ -234,8 +193,7 @@ void Server::sendResponse(int client_fd)
   
   std::ifstream file(full_path.c_str(), std::ios::binary);
   
-  if (!file.is_open())
-  {
+  if (!file.is_open()) {
     std::string body = "<html><body><h1> 404 Not Found </h1></body></html>";
     std::ostringstream oss;
     oss << "HTTP/1.1 404 Not Found\r\n";
@@ -244,36 +202,95 @@ void Server::sendResponse(int client_fd)
     oss << "Connection: close\r\n\r\n";
     oss << body;
     send(client_fd, oss.str().c_str(), oss.str().size(), 0);
-  }
-  else
-  {
+  } else {
     std::ostringstream file_content;
     file_content << file.rdbuf();
     std::string body = file_content.str();
+    
     std::ostringstream header;
     header << "HTTP/1.1 200 OK\r\n";
-    header << "Content-Type: "<< getContentType(full_path) << "\r\n";
+    header << "Content-Type: " << getContentType(full_path) << "\r\n";
     header << "Content-Length: " << body.size() << "\r\n";
     header << "Connection: close\r\n\r\n"; 
+    
     std::string full_res = header.str() + body;
     send(client_fd, full_res.c_str(), full_res.size(), 0);
   }
   closeClient(client_fd);
 }
 
-void Server::parseRequestHeader(int client_fd)
-{
+void Server::handlePost(int client_fd) {
+  ClientData &client = _clients[client_fd];
+  size_t body_start = client.request.find("\r\n\r\n");
+  
+  if (body_start != std::string::npos) {
+      body_start += 4;
+      std::string body_content = client.request.substr(body_start);
+      std::string save_path = "./www/uploaded_file.txt";
+      std::ofstream outfile(save_path.c_str(), std::ios::binary);
+      std::ostringstream response;
+      
+      if (outfile.is_open()) {
+        outfile.write(body_content.c_str(), body_content.size());
+        outfile.close();
+        std::string response_body = "<html><body><h1>Upload reussi ! Fichier sauvegarde.</h1></body></html>";
+        response << "HTTP/1.1 201 Created\r\n";
+        response << "Content-Type: text/html\r\n";
+        response << "Content-Length: " << response_body.size() << "\r\n";
+        response << "Connection: close\r\n\r\n";
+        response << response_body;
+      } else {
+        std::string error_body = "<html><body><h1>500 Internal Server Error</h1></body></html>";
+        response << "HTTP/1.1 500 Internal Server Error\r\n";
+        response << "Content-Type: text/html\r\n";
+        response << "Content-Length: " << error_body.size() << "\r\n";
+        response << "Connection: close\r\n\r\n";
+        response << error_body;
+      }
+      send(client_fd, response.str().c_str(), response.str().size(), 0);
+  }
+  closeClient(client_fd);
+}
+
+
+void Server::handleDelete(int client_fd) {
+  ClientData &client = _clients[client_fd];
+  std::string root = "./www";
+  std::string full_path = root + client.path;
+  std::ostringstream response;
+
+  if (std::remove(full_path.c_str()) == 0) {
+      std::string response_body = "<html><body><h1>200 OK : Fichier supprime avec succes !</h1></body></html>";
+      response << "HTTP/1.1 200 OK\r\n";
+      response << "Content-Type: text/html\r\n";
+      response << "Content-Length: " << response_body.size() << "\r\n";
+      response << "Connection: close\r\n\r\n";
+      response << response_body;
+  } else {
+      std::string error_body = "<html><body><h1>404 Not Found (ou droits insuffisants)</h1></body></html>";
+      response << "HTTP/1.1 404 Not Found\r\n";
+      response << "Content-Type: text/html\r\n";
+      response << "Content-Length: " << error_body.size() << "\r\n";
+      response << "Connection: close\r\n\r\n";
+      response << error_body;
+  }
+  send(client_fd, response.str().c_str(), response.str().size(), 0);
+  closeClient(client_fd);
+}
+
+void Server::parseRequestHeader(int client_fd) {
   ClientData &Client = _clients[client_fd];
   std::stringstream ss(Client.request);
   std::string line;
-  if (getline(ss, line))
-  {
+  
+  if (getline(ss, line)) {
     std::stringstream first_line(line);
     first_line >> Client.method;
     first_line >> Client.path;
   }
-  while (getline(ss, line) && line != "\r" && line != ""){
-    if (line.find("Host: ") == 0){
+  
+  while (getline(ss, line) && line != "\r" && line != "") {
+    if (line.find("Host: ") == 0) {
       Client.host = line.substr(6);
       size_t pos = Client.host.find("\r");
       if (pos != std::string::npos) Client.host.erase(pos);
@@ -291,14 +308,14 @@ std::string Server::getContentType(const std::string& path) {
   if (dotPos == std::string::npos) return "text/plain";
 
   std::string ext = path.substr(dotPos);
-  //TODO: utiliser des map apres si g pas la flemmme
+  
   if (ext == ".html" || ext == ".htm") return "text/html";
   if (ext == ".css") return "text/css";
   if (ext == ".js") return "application/javascript";
   if (ext == ".png") return "image/png";
   if (ext == ".jpg" || ext == ".jpeg") return "image/jpeg";
   if (ext == ".gif") return "image/gif";
-  if (ext == "ico") return "image/x-icon";
+  if (ext == ".ico") return "image/x-icon";
   if (ext == ".pdf") return "application/pdf";
   if (ext == ".txt") return "text/plain";
 

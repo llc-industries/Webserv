@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 19:26:19 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/19 23:01:59 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/19 23:20:19 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #include <vector>
 #include <cstdlib>
 #include <cstdio>
+#include <exception>
 
 #define MAX_EVENTS 64
 
@@ -56,11 +57,22 @@ private:
   struct epoll_event _events[MAX_EVENTS];
   std::vector<int> _server_fds;
   int _port;
+  void handleGet(int client_fd);
+  void handlePost(int client_fd);
+  void handleDelete(int client_fd);
 
 public:
   Server(int port = 8080);
   ~Server();
-
+  class SetupException : public std::exception {
+  private:
+      std::string _msg;
+  public:
+      SetupException(const std::string& msg) : _msg(msg) {}
+      virtual ~SetupException() throw() {}
+      virtual const char* what() const throw() { return _msg.c_str(); }
+  };
+  
   void setupServer(std::vector<int> ports);
   void run();
   void acceptConnection(int server_fd);

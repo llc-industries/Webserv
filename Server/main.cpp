@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 15:22:58 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/11 15:26:38 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/19 23:24:32 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,28 @@
 
 int main()
 {
-    std::vector<int> ports;
-    ports.push_back(8080);
-    ports.push_back(9090);
+    try {
+        
+        std::vector<int> ports;
+        ports.push_back(8080);
+        ports.push_back(9090);
     
-    Server webserv;
+        Server webserv;
 
-    std::cout << "[MAIN] Initialising webserv on ports (8080 and 9090)\n";
-    webserv.setupServer(ports);
-    webserv.run();
+        std::cout << "[MAIN] Initialising webserv on ports (8080 and 9090)\n";
+        webserv.setupServer(ports);
+        webserv.run();
+    }
+    catch (const Server::SetupException& e)
+    {
+        //erreur sur setup serveur
+        std::cerr << "[FATAL ERROR] Server Setup Failed: " << e.what() << std::endl;
+        return 1;
+    }
+    catch (const std::exception& e)
+    {
+        //erreur liee aux autre exception du serveur
+        std::cerr << "[FATAL ERROR] Unexpected exception: " << e.what() << std::endl;
+        return 1;
+    }
 }
