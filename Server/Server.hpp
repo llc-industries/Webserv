@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 19:26:19 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/19 23:20:19 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/20 23:48:18 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,25 +29,13 @@
 #include <cstdlib>
 #include <cstdio>
 #include <exception>
-
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 #define MAX_EVENTS 64
 
-struct ClientData
-{
-  std::string response;
-  std::string request;
-
-  std::string method;
-  std::string path;
-  std::string host;
-  
-  bool header_parsed;
-
-  int content_length;
-  
-  ClientData() : header_parsed(false), content_length(0) {}
+struct ClientData {
+  HttpRequest request;
 };
-
 
 class Server {
 private:
@@ -57,6 +45,7 @@ private:
   struct epoll_event _events[MAX_EVENTS];
   std::vector<int> _server_fds;
   int _port;
+  
   void handleGet(int client_fd);
   void handlePost(int client_fd);
   void handleDelete(int client_fd);

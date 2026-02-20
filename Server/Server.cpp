@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 15:34:07 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/20 00:21:35 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/21 00:40:50 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,31 +124,14 @@ void Server::handleClient(int client_fd)
     closeClient(client_fd);
     return;
   }
-    buffer[bytes] = '\0';
-    _clients[client_fd].request.append(buffer, bytes);
-    ClientData &client = _clients[client_fd];
-    if (!client.header_parsed)
-    { 
-      size_t header_end = client.request.find("\r\n\r\n");
-      if (header_end != std::string::npos)
-        parseRequestHeader(client_fd);
-    }
-    if (client.header_parsed)
-    {
-      size_t body_start = client.request.find("\r\n\r\n") + 4;
-      size_t current_body_size = client.request.size() - body_start;
-      size_t expected_size = client.content_length;
+    _clients[client_fd].request.swallow(buffer, bytes);
      
-      if (current_body_size >= expected_size)
-      {
-      
+      if (_clients[client_fd].request.isComplete()){
         epoll_event ev;
         ev.events = EPOLLOUT;
         ev.data.fd = client_fd;
         epoll_ctl(_epoll_fd, EPOLL_CTL_MOD ,client_fd, &ev);
-      }
-    }  
-  
+      } 
 }
 
 void Server::closeClient(int client_fd)
@@ -161,24 +144,22 @@ void Server::closeClient(int client_fd)
 
 void Server::sendResponse(int client_fd) {
   ClientData &client = _clients[client_fd];
+  std::string method = client.request.getMethod();
 
-  if (client.method == "GET") {
+  if (method == "GET") {
       handleGet(client_fd);
-  } else if (client.method == "POST") {
+  } else if (method == "POST") {
       handlePost(client_fd);
-  } else if (client.method == "DELETE") {
+  } else if (method == "DELETE") {
       handleDelete(client_fd);
   } else {
       // Si la méthode n'est pas reconnue
-      std::string error_body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
-      std::ostringstream response;
-      response << "HTTP/1.1 405 Method Not Allowed\r\n";
-      response << "Content-Type: text/html\r\n";
-      response << "Content-Length: " << error_body.size() << "\r\n";
-      response << "Connection: close\r\n\r\n";
-      response << error_body;
-      
-      send(client_fd, response.str().c_str(), response.str().size(), 0);
+      HttpResponse res;
+      res.setStatusCode(405);
+      res.setHeader("Content-Type", "text/html");
+      res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
+      std::string full_res = res.toString();
+      send(client_fd, full_res.c_str(), full_res.size(), 0);
       closeClient(client_fd);
   }
 }
@@ -186,138 +167,96 @@ void Server::sendResponse(int client_fd) {
 void Server::handleGet(int client_fd) {
   ClientData &client = _clients[client_fd];
   std::string root = "./www";
-  std::string full_path = root + client.path;
+  std::string path = client.request.getPath();
+  std::string full_path = root + path;
 
-  if (client.path == "/")
+  if (path == "/")
     full_path = root + "/index.html";
   
   std::ifstream file(full_path.c_str(), std::ios::binary);
+  HttpResponse res;
   
   if (!file.is_open()) {
-    std::string body = "<html><body><h1> 404 Not Found </h1></body></html>";
-    std::ostringstream oss;
-    oss << "HTTP/1.1 404 Not Found\r\n";
-    oss << "Content-Type: text/html\r\n";
-    oss << "Content-Length: " << body.size() << "\r\n";
-    oss << "Connection: close\r\n\r\n";
-    oss << body;
-    send(client_fd, oss.str().c_str(), oss.str().size(), 0);
+    res.setStatusCode(404);
+    res.setHeader("Content-Type", "text/html");
+    res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
   } else {
     std::ostringstream file_content;
     file_content << file.rdbuf();
-    std::string body = file_content.str();
-    
-    std::ostringstream header;
-    header << "HTTP/1.1 200 OK\r\n";
-    header << "Content-Type: " << getContentType(full_path) << "\r\n";
-    header << "Content-Length: " << body.size() << "\r\n";
-    header << "Connection: close\r\n\r\n"; 
-    
-    std::string full_res = header.str() + body;
-    send(client_fd, full_res.c_str(), full_res.size(), 0);
+  
+    res.setStatusCode(200);
+    res.autoDetectContentType(full_path);
+    res.setBody(file_content.str());
   }
+  
+  std::string full_res = res.toString();
+  send(client_fd, full_res.c_str(), full_res.size(), 0);
   closeClient(client_fd);
 }
 
 void Server::handlePost(int client_fd) {
   ClientData &client = _clients[client_fd];
-  size_t body_start = client.request.find("\r\n\r\n");
+ std::string body_content = client.request.getBody();
   
-  if (body_start != std::string::npos) {
-      body_start += 4;
-      std::string body_content = client.request.substr(body_start);
-      std::string save_path = "./www/uploaded_file.txt";
-      std::ofstream outfile(save_path.c_str(), std::ios::binary);
-      std::ostringstream response;
-      
-      if (outfile.is_open()) {
-        outfile.write(body_content.c_str(), body_content.size());
-        outfile.close();
-        std::string response_body = "<html><body><h1>Upload reussi ! Fichier sauvegarde.</h1></body></html>";
-        response << "HTTP/1.1 201 Created\r\n";
-        response << "Content-Type: text/html\r\n";
-        response << "Content-Length: " << response_body.size() << "\r\n";
-        response << "Connection: close\r\n\r\n";
-        response << response_body;
-      } else {
-        std::string error_body = "<html><body><h1>500 Internal Server Error</h1></body></html>";
-        response << "HTTP/1.1 500 Internal Server Error\r\n";
-        response << "Content-Type: text/html\r\n";
-        response << "Content-Length: " << error_body.size() << "\r\n";
-        response << "Connection: close\r\n\r\n";
-        response << error_body;
-      }
-      send(client_fd, response.str().c_str(), response.str().size(), 0);
+  std::string save_path = "./www/uploaded_file.txt";
+  std::ofstream outfile(save_path.c_str(), std::ios::binary);
+  HttpResponse res;
+  
+  if (outfile.is_open()) {
+    outfile.write(body_content.c_str(), body_content.size());
+    outfile.close();
+    
+    res.setStatusCode(201);
+    res.setHeader("Content-Type", "text/html");
+    res.setBody("<html><body><h1>Upload reussi ! Fichier sauvegarde.</h1></body></html>");
+  } else {
+    res.setStatusCode(500);
+    res.setHeader("Content-Type", "text/html");
+    res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
   }
+  
+  std::string full_res = res.toString();
+  send(client_fd, full_res.c_str(), full_res.size(), 0);
   closeClient(client_fd);
 }
 
 
 void Server::handleDelete(int client_fd) {
-  ClientData &client = _clients[client_fd];
+ClientData &client = _clients[client_fd];
   std::string root = "./www";
-  std::string full_path = root + client.path;
-  std::ostringstream response;
+  std::string full_path = root + client.request.getPath();
+  HttpResponse res;
 
   if (std::remove(full_path.c_str()) == 0) {
-      std::string response_body = "<html><body><h1>200 OK : Fichier supprime avec succes !</h1></body></html>";
-      response << "HTTP/1.1 200 OK\r\n";
-      response << "Content-Type: text/html\r\n";
-      response << "Content-Length: " << response_body.size() << "\r\n";
-      response << "Connection: close\r\n\r\n";
-      response << response_body;
+      res.setStatusCode(200);
+      res.setHeader("Content-Type", "text/html");
+      res.setBody("<html><body><h1>200 OK : Fichier supprime avec succes !</h1></body></html>");
   } else {
-      std::string error_body = "<html><body><h1>404 Not Found (ou droits insuffisants)</h1></body></html>";
-      response << "HTTP/1.1 404 Not Found\r\n";
-      response << "Content-Type: text/html\r\n";
-      response << "Content-Length: " << error_body.size() << "\r\n";
-      response << "Connection: close\r\n\r\n";
-      response << error_body;
+      res.setStatusCode(404);
+      res.setHeader("Content-Type", "text/html");
+      res.setBody("<html><body><h1>404 Not Found (ou droits insuffisants)</h1></body></html>");
   }
-  send(client_fd, response.str().c_str(), response.str().size(), 0);
+  
+  std::string full_res = res.toString();
+  send(client_fd, full_res.c_str(), full_res.size(), 0);
   closeClient(client_fd);
 }
 
-void Server::parseRequestHeader(int client_fd) {
-  ClientData &Client = _clients[client_fd];
-  std::stringstream ss(Client.request);
-  std::string line;
-  
-  if (getline(ss, line)) {
-    std::stringstream first_line(line);
-    first_line >> Client.method;
-    first_line >> Client.path;
-  }
-  
-  while (getline(ss, line) && line != "\r" && line != "") {
-    if (line.find("Host: ") == 0) {
-      Client.host = line.substr(6);
-      size_t pos = Client.host.find("\r");
-      if (pos != std::string::npos) Client.host.erase(pos);
-    }
-    if (line.find("Content-Length: ") == 0) {
-        Client.content_length = std::atoi(line.substr(16).c_str());
-    }
-  }
-  Client.header_parsed = true;
-  std::cout << "[PARSED] Method: " << Client.method << " Path: " << Client.path << std::endl;
-}
+// std::string Server::getContentType(const std::string& path) {
+//   size_t dotPos = path.find_last_of(".");
+//   if (dotPos == std::string::npos) return "text/plain";
 
-std::string Server::getContentType(const std::string& path) {
-  size_t dotPos = path.find_last_of(".");
-  if (dotPos == std::string::npos) return "text/plain";
-
-  std::string ext = path.substr(dotPos);
+//   std::string ext = path.substr(dotPos);
   
-  if (ext == ".html" || ext == ".htm") return "text/html";
-  if (ext == ".css") return "text/css";
-  if (ext == ".js") return "application/javascript";
-  if (ext == ".png") return "image/png";
-  if (ext == ".jpg" || ext == ".jpeg") return "image/jpeg";
-  if (ext == ".gif") return "image/gif";
-  if (ext == ".ico") return "image/x-icon";
-  if (ext == ".pdf") return "application/pdf";
-  if (ext == ".txt") return "text/plain";
+//   if (ext == ".html" || ext == ".htm") return "text/html";
+//   if (ext == ".css") return "text/css";
+//   if (ext == ".js") return "application/javascript";
+//   if (ext == ".png") return "image/png";
+//   if (ext == ".jpg" || ext == ".jpeg") return "image/jpeg";
+//   if (ext == ".gif") return "image/gif";
+//   if (ext == ".ico") return "image/x-icon";
+//   if (ext == ".pdf") return "application/pdf";
+//   if (ext == ".txt") return "text/plain";
 
-  return "application/octet-stream";
-}
+//   return "application/octet-stream";
+// }
