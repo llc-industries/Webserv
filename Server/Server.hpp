@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 19:26:19 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/20 23:48:18 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/21 01:12:08 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,18 +31,20 @@
 #include <exception>
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
+// Nombre maximum d'événements traités par epoll_wait en une seule fois
 #define MAX_EVENTS 64
 
+// Structure qui lie un client (file descriptor) à sa requête HTTP.
 struct ClientData {
   HttpRequest request;
 };
 
 class Server {
 private:
-  int _epoll_fd;
-  std::map<int, ClientData> _clients;
-  std::map<int, sockaddr_in> _servers;
-  struct epoll_event _events[MAX_EVENTS];
+  int _epoll_fd; // Le "cerveau" qui surveille tous les sockets
+  std::map<int, ClientData> _clients;// Liste des clients connectés (FD -> Données)
+  std::map<int, sockaddr_in> _servers; // Tableau rempli par epoll_wait
+  struct epoll_event _events[MAX_EVENTS]; // Liste des sockets d'écoute (ports 8080, 9090...)
   std::vector<int> _server_fds;
   int _port;
   
@@ -69,7 +71,7 @@ public:
   void closeClient(int client_fd);
   void sendResponse(int client_fd);
   void parseRequestHeader(int client_fd);
-  std::string getContentType(const std::string& path);
+  //std::string getContentType(const std::string& path);
 };
 
 #endif
