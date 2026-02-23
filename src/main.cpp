@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
   try {
     Server server(config);
-    server.run();
+    server.createSockets();
   } catch (const std::exception &e) {
     LOG_ERR(e.what());
     return EXIT_FAILURE;

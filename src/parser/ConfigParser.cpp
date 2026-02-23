@@ -1,9 +1,6 @@
 #include "ConfigParser.hpp"
 #include "logs.hpp"
 
-typedef std::vector<ServerConfig>::iterator it_config;
-typedef std::vector<Location>::iterator it_loc;
-
 /* ----- CONSTRUCTOR ----- */
 
 ConfigParser::ConfigParser(const std::string &configPath)
