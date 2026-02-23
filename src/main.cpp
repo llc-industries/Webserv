@@ -1,6 +1,7 @@
 #include "logs.hpp"
 #include "parser/ConfigParser.hpp"
 #include "parser/ConfigPrint.hpp"
+#include "server/Server.hpp"
 
 #include <iostream>
 #include <stdlib.h>
@@ -25,12 +26,24 @@ std::string findConfigFile(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-  // PRINT_HEADER;
+  PRINT_HEADER;
+
+  std::vector<ServerConfig> config;
   const std::string configPath = findConfigFile(argc, argv);
 
   try {
-    ConfigParser Config(configPath);
-    ConfigPrint Print(Config.getConfig());
+    ConfigParser parser(configPath);
+    config = parser.getConfig();
+  } catch (const std::exception &e) {
+    LOG_ERR(e.what());
+    return EXIT_FAILURE;
+  }
+
+  ConfigPrint Print(config);
+
+  try {
+    Server server(config);
+    server.run();
   } catch (const std::exception &e) {
     LOG_ERR(e.what());
     return EXIT_FAILURE;
