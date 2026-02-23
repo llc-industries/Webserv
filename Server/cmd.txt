@@ -1,0 +1,18 @@
+1-Test GET
+curl -i http://localhost:8080/
+renvoie le www/index.html avec 200 OK et Content-Type: text/html
+curl -i http://localhost:8080/fichier_qui_n_existe_pas.html
+renvoie 404 not found
+curl -i http://localhost:9090/
+renvoie 200 OK si 9090 est ecouter par le main
+2-Test POST
+curl -i -X POST -d "Ceci est un test d'upload via mon nouveau parser" http://localhost:8080/
+renvoie 201 Created et ecrie dans le fichier www/uploaded_file.txt
+3-Test DELETE
+curl -i -X DELETE http://localhost:8080/uploaded_file.txt
+renvoie 200 OK et supprime le contenue du file www/uploaded_file.txt
+curl -i -X DELETE http://localhost:8080/fantome.txt
+renvoie 404 Not found
+4-Methode non gerer
+curl -i -X PUT -d "test" http://localhost:8080/
+renvoie 405 Method Not Allowed
