@@ -34,16 +34,17 @@ int main(int argc, char **argv) {
   try {
     ConfigParser parser(configPath);
     config = parser.getConfig();
+    ConfigPrint print(config);
   } catch (const std::exception &e) {
     LOG_ERR(e.what());
     return EXIT_FAILURE;
   }
 
-  ConfigPrint Print(config);
-
   try {
     Server server(config);
     server.createSockets();
+    server.setupEpoll();
+    server.run();
   } catch (const std::exception &e) {
     LOG_ERR(e.what());
     return EXIT_FAILURE;
