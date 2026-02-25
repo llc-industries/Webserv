@@ -30,7 +30,7 @@ public:
   void run();
 
   void acceptConnection(int fd, const ServerConfig *context);
-  void closeClient(int fd);
+  void closeClient(int client_fd);
   void handleClientRead(int fd);
   void handleClientWrite(int fd);
 

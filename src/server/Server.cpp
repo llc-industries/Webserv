@@ -135,6 +135,34 @@ void Server::acceptConnection(int fd, const ServerConfig *config) {
                                  << ntohs(client_addr.sin_port));
 }
 
+void Server::closeClient(int client_fd) {
+  epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL);
+  close(client_fd);
+  _clientMap.erase(client_fd);
+  LOG_CLOSE("Closed client connection. FD = " << client_fd);
+}
+
+void Server::handleClientRead(int fd) {
+  char buf[4096];
+  ssize_t retval = recv(fd, buf, sizeof(buf), 0); // J'ai remove le -1 du sizeof
+  if (retval == -1) {
+    LOG_ERR("recv(): " + std::string(strerror(errno)));
+    closeClient(fd);
+    return;
+  } else if (retval == 0) {
+    closeClient(fd);
+    return;
+  }
+  _clientMap[fd].swallow(buf, retval);
+  if (_clientMap[fd].isComplete() == true) {
+    epoll_event ev;
+    std::memset(&ev, 0, sizeof(ev));
+    ev.events = EPOLLOUT;
+    ev.data.fd = fd;
+    epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev);
+  }
+}
+
 void Server::_socketFail(const std::string &funcName, struct addrinfo *res,
                          int fd) {
   if (fd != -1)
