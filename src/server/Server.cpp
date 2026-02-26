@@ -130,16 +130,16 @@ void Server::acceptConnection(int fd, const ServerConfig *config) {
   _clientMap.insert(std::make_pair(client_fd, Client(config)));
 
   // TODO: Format IP address clean -> byte.byte.byte.byte:port
-  LOG_ACCEPT("New client. FD = " << client_fd << " IP/Port = "
-                                 << ntohl(client_addr.sin_addr.s_addr) << ":"
-                                 << ntohs(client_addr.sin_port));
+  LOG_ACCEPT("FD = " << client_fd << " New client.  IP/Port = "
+                     << ntohl(client_addr.sin_addr.s_addr) << ":"
+                     << ntohs(client_addr.sin_port));
 }
 
 void Server::closeClient(int client_fd) {
   epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL);
   close(client_fd);
   _clientMap.erase(client_fd);
-  LOG_CLOSE("Closed client connection. FD = " << client_fd);
+  LOG_CLOSE("FD = " << client_fd << " Closed client connection");
 }
 
 void Server::handleClientRead(int fd) {
@@ -153,6 +153,7 @@ void Server::handleClientRead(int fd) {
     closeClient(fd);
     return;
   }
+  LOG_RECV("FD = " << fd << " recv() received " << retval << " bytes");
   _clientMap[fd].swallow(buf, retval);
   if (_clientMap[fd].isRequestComplete() == true) {
     epoll_event ev;
@@ -166,11 +167,17 @@ void Server::handleClientRead(int fd) {
 // TODO: ne pas envoyer tout d'un coup en mode bourrin
 void Server::handleClientWrite(int fd) {
   Client &client = _clientMap[fd];
+  if (client.isResponseReady() == false)
+    client.buildResponse();
 
-  client.buildResponse();
+  ssize_t retval;
+
   if (client.isResponseReady() == true) {
-    if (send(fd, client.getResponse(), client.getResponseLength(), 0) == -1)
+    retval = send(fd, client.getResponse(), client.getResponseLength(), 0);
+    if (retval == -1)
       LOG_ERR("send(): " + std::string(strerror(errno)));
+    else
+      LOG_SEND("FD = " << fd << " send() sent " << retval << " bytes");
     closeClient(fd);
   }
 }

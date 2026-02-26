@@ -15,6 +15,7 @@ public:
 
   void buildResponse();
   bool isResponseReady() const;
+
   const char *getResponse() const;
   size_t getResponseLength() const;
 
@@ -22,9 +23,10 @@ private:
   const ServerConfig *_context;
 
   Request _request;
-  Response _response;
-
   bool _isReqComplete;
+
+  Response _response;
+  std::string _rawResponse;
   bool _isRespReady;
 };
 

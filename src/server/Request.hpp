@@ -9,6 +9,18 @@
 
 class Request {
 
+public:
+  Request();
+  ~Request();
+  // recv()
+  void swallow(const char *buffer, size_t bytes);
+  // getters
+  bool isComplete() const;
+  std::string getMethod() const;
+  std::string getPath() const;
+  std::string getHeader(const std::string &key) const;
+  std::string getBody() const;
+
 private:
   std::string _raw_data;
   // attribue parse
@@ -24,18 +36,6 @@ private:
   // ft de parsing de requete
   void parseFirstLine(const std::string &line);
   void parseHeaderLine(const std::string &line);
-
-public:
-  Request();
-  ~Request();
-  // recv()
-  void swallow(const char *buffer, size_t bytes);
-  // getters
-  bool isComplete() const;
-  std::string getMethod() const;
-  std::string getPath() const;
-  std::string getHeader(const std::string &key) const;
-  std::string getBody() const;
 };
 
 #endif /* REQUEST_H */

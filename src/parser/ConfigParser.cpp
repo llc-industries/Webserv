@@ -151,7 +151,7 @@ void ConfigParser::_checkDefaults() {
 
   for (size_t i = 0; i < _config.size(); i++) {
     ServerConfig &sc = _config[i];
-    std::string block(1, i + 49); // Ugly
+    std::string block(1, i + 49); // TODO: Ugly
 
     if (sc.host.empty()) {
       LOG_WARN("No host value in server block " + block +
