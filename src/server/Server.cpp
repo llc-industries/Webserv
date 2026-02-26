@@ -154,12 +154,24 @@ void Server::handleClientRead(int fd) {
     return;
   }
   _clientMap[fd].swallow(buf, retval);
-  if (_clientMap[fd].isComplete() == true) {
+  if (_clientMap[fd].isRequestComplete() == true) {
     epoll_event ev;
     std::memset(&ev, 0, sizeof(ev));
     ev.events = EPOLLOUT;
     ev.data.fd = fd;
     epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev);
+  }
+}
+
+// TODO: ne pas envoyer tout d'un coup en mode bourrin
+void Server::handleClientWrite(int fd) {
+  Client &client = _clientMap[fd];
+
+  client.buildResponse();
+  if (client.isResponseReady() == true) {
+    if (send(fd, client.getResponse(), client.getResponseLength(), 0) == -1)
+      LOG_ERR("send(): " + std::string(strerror(errno)));
+    closeClient(fd);
   }
 }
 

@@ -14,7 +14,7 @@ public:
   bool isRequestComplete() const;
 
   void buildResponse();
-
+  bool isResponseReady() const;
   const char *getResponse() const;
   size_t getResponseLength() const;
 
@@ -24,6 +24,7 @@ private:
   Request _request;
   Response _response;
 
+  bool _isReqComplete;
   bool _isRespReady;
 };
 
