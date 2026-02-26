@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/20 21:14:02 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/21 00:48:26 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/26 15:57:35 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,18 +77,26 @@ void HttpRequest::parseHeaderLine(const std::string &line) {
   }
 }
 
-bool HttpRequest::isComplete() const { return _is_complete; }
+bool HttpRequest::isComplete() const {
+return _is_complete; 
+}
 
-std::string HttpRequest::getMethod() const { return _method; }
+std::string HttpRequest::getMethod() const { 
+return _method; 
+}
 
-std::string HttpRequest::getPath() const { return _path; }
+std::string HttpRequest::getPath() const { 
+return _path; 
+}
 
-std::string HttpRequest::getBody() const { return _body; }
+std::string HttpRequest::getBody() const {
+return _body; 
+}
 
 std::string HttpRequest::getHeader(const std::string &key) const {
   std::map<std::string, std::string>::const_iterator it = _headers.find(key);
   if (it != _headers.end()) {
     return it->second;
   }
-  return ""; // si ya pas de header
+  return "";
 }

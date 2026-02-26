@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 19:26:19 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/21 01:12:08 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/23 18:09:36 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,11 +46,13 @@ private:
   std::map<int, sockaddr_in> _servers; // Tableau rempli par epoll_wait
   struct epoll_event _events[MAX_EVENTS]; // Liste des sockets d'écoute (ports 8080, 9090...)
   std::vector<int> _server_fds;
+  std::map<int, std::string> _error_pages;
   int _port;
   
   void handleGet(int client_fd);
   void handlePost(int client_fd);
   void handleDelete(int client_fd);
+  void sendErrorPage(int client_fd, int status_code);
 
 public:
   Server(int port = 8080);
@@ -70,8 +72,6 @@ public:
   void handleClient(int client_fd);
   void closeClient(int client_fd);
   void sendResponse(int client_fd);
-  void parseRequestHeader(int client_fd);
-  //std::string getContentType(const std::string& path);
 };
 
 #endif

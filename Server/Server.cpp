@@ -6,7 +6,7 @@
 /*   By: atazzit <atazzit@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 15:34:07 by atazzit           #+#    #+#             */
-/*   Updated: 2026/02/21 01:29:01 by atazzit          ###   ########.fr       */
+/*   Updated: 2026/02/26 15:34:54 by atazzit          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,9 @@
 
 Server::Server(int port) : _epoll_fd(-1), _port(port) {
   (void)_port;
+  _error_pages[404] = "./www/error_pages/404.html";
+  _error_pages[405] = "./www/error_pages/405.html";
+  _error_pages[500] = "./www/error_pages/500.html";
 }
 
 Server::~Server() {
@@ -188,14 +191,7 @@ void Server::sendResponse(int client_fd) {
   } else if (method == "DELETE") {
       handleDelete(client_fd);
   } else {
-      // Si la méthode n'est pas reconnue
-      HttpResponse res;
-      res.setStatusCode(405);
-      res.setHeader("Content-Type", "text/html");
-      res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
-      std::string full_res = res.toString();
-      send(client_fd, full_res.c_str(), full_res.size(), 0);
-      closeClient(client_fd);
+      sendErrorPage(client_fd, 405);
   }
 }
 
@@ -205,7 +201,6 @@ void Server::handleGet(int client_fd) {
   std::string root = "./www";
   std::string path = client.request.getPath();
   std::string full_path = root + path;
-  // Si on demande la racine, on sert l'index (TODO: lire l'index depuis la config)
   if (path == "/")
     full_path = root + "/index.html";
   
@@ -213,15 +208,13 @@ void Server::handleGet(int client_fd) {
   HttpResponse res;
   
   if (!file.is_open()) {
-    res.setStatusCode(404);
-    res.setHeader("Content-Type", "text/html");
-    res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
+    sendErrorPage(client_fd, 404);
+    return ;
   } else {
     std::ostringstream file_content;
-    file_content << file.rdbuf(); //lit tout le fichier
-  
+    file_content << file.rdbuf();
     res.setStatusCode(200);
-    res.autoDetectContentType(full_path); // Trouve le bon type (ex: image/png, text/css)
+    res.autoDetectContentType(full_path);
     res.setBody(file_content.str());
   }
   
@@ -234,7 +227,7 @@ void Server::handlePost(int client_fd) {
   ClientData &client = _clients[client_fd];
  std::string body_content = client.request.getBody();
   //TODO: Nom dynamique ou extraction depuis multipart/form-data
-  std::string save_path = "./www/uploaded_file.txt"; //HARDCODER
+  std::string save_path = "./www/uploaded_file.txt";
   std::ofstream outfile(save_path.c_str(), std::ios::binary);
   HttpResponse res;
   
@@ -246,9 +239,7 @@ void Server::handlePost(int client_fd) {
     res.setHeader("Content-Type", "text/html");
     res.setBody("<html><body><h1>Upload reussi ! Fichier sauvegarde.</h1></body></html>");
   } else {
-    res.setStatusCode(500);
-    res.setHeader("Content-Type", "text/html");
-    res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
+      sendErrorPage(client_fd, 500);
   }
   
   std::string full_res = res.toString();
@@ -268,31 +259,39 @@ ClientData &client = _clients[client_fd];
       res.setHeader("Content-Type", "text/html");
       res.setBody("<html><body><h1>200 OK : Fichier supprime avec succes !</h1></body></html>");
   } else {
-      res.setStatusCode(404);
-      res.setHeader("Content-Type", "text/html");
-      res.setBody("<html><body><h1>404 Not Found (ou droits insuffisants)</h1></body></html>");
+      sendErrorPage(client_fd, 404);
   }
   
   std::string full_res = res.toString();
   send(client_fd, full_res.c_str(), full_res.size(), 0);
   closeClient(client_fd);
 }
-// TODO
-// std::string Server::getContentType(const std::string& path) {
-//   size_t dotPos = path.find_last_of(".");
-//   if (dotPos == std::string::npos) return "text/plain";
 
-//   std::string ext = path.substr(dotPos);
-  
-//   if (ext == ".html" || ext == ".htm") return "text/html";
-//   if (ext == ".css") return "text/css";
-//   if (ext == ".js") return "application/javascript";
-//   if (ext == ".png") return "image/png";
-//   if (ext == ".jpg" || ext == ".jpeg") return "image/jpeg";
-//   if (ext == ".gif") return "image/gif";
-//   if (ext == ".ico") return "image/x-icon";
-//   if (ext == ".pdf") return "application/pdf";
-//   if (ext == ".txt") return "text/plain";
 
-//   return "application/octet-stream";
-// }
+void Server::sendErrorPage(int client_fd,int status_code)
+{
+  HttpResponse res;
+  res.setHeader("Content-Type", "text/html");
+  res.setStatusCode(status_code);
+  std::string body = "";
+  bool loaded = false;
+  std::map<int, std::string>::iterator it = _error_pages.find(status_code);
+  if (it != _error_pages.end())
+  {
+    std::string path = it->second;
+    std::ifstream file(path.c_str(), std::ios::binary);
+    if (file.is_open())
+    {
+      std::ostringstream content;
+      content << file.rdbuf();
+      body = content.str();
+      loaded = true;
+    }
+    //if (!loaded)
+    //TODO
+  }
+  res.setBody(body);
+  std::string full_res = res.toString();
+  send(client_fd, full_res.c_str(), full_res.size(), 0);
+  closeClient(client_fd);
+}
