@@ -1,29 +1,29 @@
-#include "Response.hpp"
+#include "HttpResponse.hpp"
 
-Response::Response() : _status_code(200), _status_message("OK") {
+HttpResponse::HttpResponse() : _status_code(200), _status_message("OK") {
   _headers["Server"] = "Webserv/1.0";
   _headers["Connection"] = "close";
 }
 
-Response::~Response() {}
+HttpResponse::~HttpResponse() {}
 
-void Response::setStatusCode(int code) {
+void HttpResponse::setStatusCode(int code) {
   _status_code = code;
   _status_message = getReasonPhrase(code);
 }
 
-void Response::setHeader(const std::string &key, const std::string &value) {
+void HttpResponse::setHeader(const std::string &key, const std::string &value) {
   _headers[key] = value;
 }
 
-void Response::setBody(const std::string &body) {
+void HttpResponse::setBody(const std::string &body) {
   _body = body;
   std::ostringstream length_str;
   length_str << _body.size();
   setHeader("Content-Length", length_str.str());
 }
 
-std::string Response::getReasonPhrase(int code) const {
+std::string HttpResponse::getReasonPhrase(int code) const {
   switch (code) {
   case 200:
     return "OK";
@@ -50,7 +50,7 @@ std::string Response::getReasonPhrase(int code) const {
   }
 }
 
-void Response::autoDetectContentType(const std::string &path) {
+void HttpResponse::autoDetectContentType(const std::string &path) {
 
   size_t dotPos = path.find_last_of(".");
   if (dotPos == std::string::npos) {
@@ -82,14 +82,15 @@ void Response::autoDetectContentType(const std::string &path) {
     setHeader("Content-Type", "application/octet-stream");
 }
 
-std::string Response::toString() const {
-  std::ostringstream response;
-  response << "HTTP/1.1 " << _status_code << " " << _status_message << "\r\n";
+std::string HttpResponse::toString() const {
+  std::ostringstream HttpResponse;
+  HttpResponse << "HTTP/1.1 " << _status_code << " " << _status_message
+               << "\r\n";
   for (std::map<std::string, std::string>::const_iterator it = _headers.begin();
        it != _headers.end(); ++it) {
-    response << it->first << ": " << it->second << "\r\n";
+    HttpResponse << it->first << ": " << it->second << "\r\n";
   }
-  response << "\r\n";
-  response << _body;
-  return response.str();
+  HttpResponse << "\r\n";
+  HttpResponse << _body;
+  return HttpResponse.str();
 }

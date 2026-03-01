@@ -1,11 +1,11 @@
-#include "Request.hpp"
+#include "HttpRequest.hpp"
 
-Request::Request()
+HttpRequest::HttpRequest()
     : _headers_parsed(false), _is_complete(false), _content_length(0) {}
 
-Request::~Request() {}
+HttpRequest::~HttpRequest() {}
 
-void Request::swallow(const char *buffer, size_t bytes) {
+void HttpRequest::swallow(const char *buffer, size_t bytes) {
   _raw_data.append(buffer, bytes);
   if (!_headers_parsed) {
     size_t end_of_headers = _raw_data.find("\r\n\r\n");
@@ -42,14 +42,14 @@ void Request::swallow(const char *buffer, size_t bytes) {
   }
 }
 
-void Request::parseFirstLine(const std::string &line) {
+void HttpRequest::parseFirstLine(const std::string &line) {
   std::istringstream iss(line);
   iss >> _method;
   iss >> _path;
   iss >> _version;
 }
 
-void Request::parseHeaderLine(const std::string &line) {
+void HttpRequest::parseHeaderLine(const std::string &line) {
   size_t pos = line.find(':');
   if (pos != std::string::npos) {
     std::string key = line.substr(0, pos);
@@ -65,15 +65,15 @@ void Request::parseHeaderLine(const std::string &line) {
   }
 }
 
-bool Request::isComplete() const { return _is_complete; }
+bool HttpRequest::isComplete() const { return _is_complete; }
 
-std::string Request::getMethod() const { return _method; }
+std::string HttpRequest::getMethod() const { return _method; }
 
-std::string Request::getPath() const { return _path; }
+std::string HttpRequest::getPath() const { return _path; }
 
-std::string Request::getBody() const { return _body; }
+std::string HttpRequest::getBody() const { return _body; }
 
-std::string Request::getHeader(const std::string &key) const {
+std::string HttpRequest::getHeader(const std::string &key) const {
   std::map<std::string, std::string>::const_iterator it = _headers.find(key);
   if (it != _headers.end()) {
     return it->second;

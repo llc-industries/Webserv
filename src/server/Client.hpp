@@ -2,8 +2,8 @@
 #define CLIENT_H
 
 #include "ConfigStructs.hpp"
-#include "Request.hpp"
-#include "Response.hpp"
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 
 class Client {
 public:
@@ -22,10 +22,10 @@ public:
 private:
   const ServerConfig *_context;
 
-  Request _request;
+  HttpRequest _request;
   bool _isReqComplete;
 
-  Response _response;
+  HttpResponse _response;
   std::string _rawResponse;
   bool _isRespReady;
 };

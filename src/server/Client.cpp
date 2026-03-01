@@ -10,7 +10,7 @@ void Client::swallow(const char *buf, ssize_t bytesRead) {
   _isReqComplete = _request.isComplete();
 }
 
-void Client::buildResponse() {}
+void Client::buildResponse() { if () }
 
 const char *Client::getResponse() const { return _rawResponse.c_str(); }
 size_t Client::getResponseLength() const { return _rawResponse.length(); }

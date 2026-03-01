@@ -1,5 +1,5 @@
-#ifndef REQUEST_H
-#define REQUEST_H
+#ifndef HTTPREQUEST_H
+#define HTTPREQUEST_H
 
 #include <cstdlib>
 #include <iostream>
@@ -7,11 +7,11 @@
 #include <sstream>
 #include <string>
 
-class Request {
+class HttpRequest {
 
 public:
-  Request();
-  ~Request();
+  HttpRequest();
+  ~HttpRequest();
   // recv()
   void swallow(const char *buffer, size_t bytes);
   // getters
@@ -38,4 +38,4 @@ private:
   void parseHeaderLine(const std::string &line);
 };
 
-#endif /* REQUEST_H */
+#endif /* HTTPREQUEST_H */
