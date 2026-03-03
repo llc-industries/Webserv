@@ -10,6 +10,8 @@ Server::~Server() {
     close(_epollFd);
 }
 
+/* -------- INIT FUNCTIONS -------- */
+
 // clang-format off
 
 // Create sockets and associate them with config context
@@ -75,6 +77,8 @@ void Server::setupEpoll() {
   LOG_INFO("epoll instance is ready");
 }
 
+/* -------------- EVENT LOOP -------------- */
+
 void Server::run() {
   LOG_INFO("---------- Server is running ! ----------");
   while (42) {
@@ -100,6 +104,8 @@ void Server::run() {
     }
   }
 }
+
+/* -------------- CLIENT SPECIFIC METHODS -------------- */
 
 void Server::acceptConnection(int fd, const ServerConfig *config) {
   sockaddr_in client_addr;
@@ -154,8 +160,9 @@ void Server::handleClientRead(int fd) {
     return;
   }
   LOG_RECV("FD = " << fd << " recv() received " << retval << " bytes");
-  _clientMap[fd].swallow(buf, retval);
-  if (_clientMap[fd].isRequestComplete() == true) {
+  Client &client = _clientMap.find(fd)->second;
+  client.swallow(buf, retval);
+  if (client.isRequestComplete() == true) {
     epoll_event ev;
     std::memset(&ev, 0, sizeof(ev));
     ev.events = EPOLLOUT;
@@ -166,7 +173,7 @@ void Server::handleClientRead(int fd) {
 
 // TODO: ne pas envoyer tout d'un coup en mode bourrin
 void Server::handleClientWrite(int fd) {
-  Client &client = _clientMap[fd];
+  Client &client = _clientMap.find(fd)->second;
   if (client.isResponseReady() == false)
     client.buildResponse();
 

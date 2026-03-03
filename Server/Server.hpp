@@ -13,8 +13,6 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
 #include <arpa/inet.h>
 #include <cstdio>
 #include <cstdlib>
