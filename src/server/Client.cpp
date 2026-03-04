@@ -139,4 +139,33 @@ void Client::_handlePost(const Route &route) {}
 void Client::_handleDelete(const Route &route) {}
 
 // Set page to return
-void Client::_setError(int code) {}
+void Client::_setError(int code) {
+  _response.setStatusCode(code);
+  std::string errorFile;
+
+  std::map<int, std::string>::const_iterator it = _context->errPages.find(code);
+  if (it != _context->errPages.end())
+    errorFile = _context->root + it->second; // Fichier de config
+  else {
+    std::ostringstream ss;
+    ss << "./www/error_pages/" << code << ".html";
+    errorFile = ss.str(); // Fichier par défaut
+  }
+
+  std::ifstream file(errorFile.c_str());
+  if (file.is_open() == true) { // On sert le fichier
+    std::ostringstream os;
+    os << file.rdbuf();
+    _response.setBody(os.str());
+    _response.setHeader("Content-Type", "text/html");
+  } else { // On génère en dur
+    std::ostringstream os;
+    os << "<html><body><h1>" << code << " " << _response.getReasonPhrase(code)
+       << "</h1></body></html>";
+    _response.setBody(os.str());
+    _response.setHeader("Content-Type", "text/html");
+  }
+
+  _rawResponse = _response.toString();
+  _isRespReady = true;
+}

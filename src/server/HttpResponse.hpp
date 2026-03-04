@@ -17,14 +17,13 @@ public:
   // MIME
   void autoDetectContentType(const std::string &path);
   std::string toString() const;
+  std::string getReasonPhrase(int code) const; // ex:200=OK 404="NOT FOUND"
 
 private:
   int _status_code;
   std::string _status_message;
   std::map<std::string, std::string> _headers;
   std::string _body;
-
-  std::string getReasonPhrase(int code) const; // ex:200=OK 404="NOT FOUND"
 };
 
 #endif /* HTTPRESPONSE_H */

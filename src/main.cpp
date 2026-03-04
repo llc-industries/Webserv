@@ -11,8 +11,8 @@ std::string findConfigFile(int argc, char **argv) {
 
   if (argc < 2) {
     LOG_WARN("No arguments provided, using default configuration file");
-    LOG_INFO("Using conf/testserver.conf as config file");
-    configPath = "conf/testserver.conf";
+    LOG_INFO("Using conf/test.conf as config file");
+    configPath = "conf/test.conf";
   } else if (argc > 2) {
     LOG_WARN("Too many arguments provided");
     LOG_INFO("Using \"" << argv[1] << "\" as config file");
@@ -26,7 +26,7 @@ std::string findConfigFile(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-  PRINT_HEADER;
+  // PRINT_HEADER;
 
   std::vector<ServerConfig> config;
   const std::string configPath = findConfigFile(argc, argv);

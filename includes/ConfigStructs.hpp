@@ -21,9 +21,10 @@ struct Location {
 };
 
 struct ServerConfig {
-  std::vector<int> ports;              // listen (default 8080 as non root)
-  std::string host;                    // Default to localhost -> 127.0.0.1
-  std::string serverName;              // webserv.com
+  std::vector<int> ports; // listen (default 8080 as non root)
+  std::string host;       // Default to localhost -> 127.0.0.1
+  std::string serverName; // webserv.com
+
   int maxBodySize;                     // 1000000 == 1 MB (Nginx default)
   std::map<int, std::string> errPages; // Pages to serve for errors
 
