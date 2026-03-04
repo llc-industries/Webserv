@@ -1,0 +1,176 @@
+#include "Client.hpp"
+
+void Client::swallow(const char *buf, ssize_t bytesRead) {
+  _request.swallow(buf, bytesRead);
+  _isReqComplete = _request.isComplete();
+}
+
+/* ---------- GETTERS ---------- */
+
+const char *Client::getResponse() const { return _rawResponse.c_str(); }
+size_t Client::getResponseLength() const { return _rawResponse.length(); }
+bool Client::isRequestComplete() const { return _isReqComplete; }
+bool Client::isResponseReady() const { return _isRespReady; }
+
+/* ---------- RESPONSE HELPERS ---------- */
+
+// Check si la request est bien formée
+int Client::_validateRequest() const {
+  // Error 400 -> Bad request
+  if (_request.getPath().empty() || _request.getMethod().empty() ||
+      _request.getHeader("Host").empty())
+    return 400;
+
+  // Error 413 -> Entity Too Large
+  if (_request.getMethod() == "POST" && _context->maxBodySize > 0)
+    if (_request.getBody().size() > static_cast<size_t>(_context->maxBodySize))
+      return 413;
+
+  return 0;
+}
+
+// Prépare la structure route
+// route contiens:
+// Le bloc location si besoin
+// Les path root et full path
+Client::Route Client::_resolveRoute() const {
+
+  Route ret;
+  size_t maxLen = 0;
+  std::string path = _request.getPath();
+
+  // Find appropriate location
+  for (size_t i = 0; i < _context->locations.size(); i++) {
+    const std::string &locPath = _context->locations[i].path;
+    if (path.find(locPath) == 0 && locPath.length() > maxLen) {
+      ret.loc = &(_context->locations[i]);
+      maxLen = locPath.length();
+    }
+  }
+
+  // Set root + full path
+  if (ret.loc != NULL && ret.loc->root.empty() == false)
+    ret.root = ret.loc->root;
+  else
+    ret.root = _context->root;
+
+  ret.full_path = ret.root + path;
+
+  if (path == "/") {
+    if (ret.loc && ret.loc->index.empty() == false)
+      ret.full_path = ret.root + "/" + ret.loc->index[0];
+    else if (_context->index.empty() == false)
+      ret.full_path = ret.root + "/" + _context->index[0];
+  }
+
+  return ret;
+}
+
+// Check POST GET etc
+bool Client::_isMethodAllowed(const Route &route) const {
+  if (route.loc == NULL || route.loc->methods.empty())
+    return true;
+
+  std::string method = _request.getMethod();
+  for (size_t i = 0; i < route.loc->methods.size(); i++) {
+    if (route.loc->methods[i] == method)
+      return true;
+  }
+
+  return false;
+}
+
+// Set page to return
+void Client::_setError(int code) {
+  _response.setStatusCode(code);
+  std::string errorFile;
+
+  std::map<int, std::string>::const_iterator it = _context->errPages.find(code);
+  if (it != _context->errPages.end())
+    errorFile = _context->root + it->second; // Fichier de config
+  else {
+    std::ostringstream ss;
+    ss << "./www/error_pages/" << code << ".html";
+    errorFile = ss.str(); // Fichier par défaut
+  }
+
+  std::ifstream file(errorFile.c_str());
+  if (file.is_open() == true) { // On sert le fichier
+    std::ostringstream os;
+    os << file.rdbuf();
+    _response.setBody(os.str());
+    _response.setHeader("Content-Type", "text/html");
+  } else { // On génère en dur
+    std::ostringstream os;
+    os << "<html><body><h1>" << code << " " << _response.getReasonPhrase(code)
+       << "</h1></body></html>";
+    _response.setBody(os.str());
+    _response.setHeader("Content-Type", "text/html");
+  }
+
+  _rawResponse = _response.toString();
+  _isRespReady = true;
+}
+
+bool Client::_isDir(const std::string &path) const {
+  struct stat s;
+  if (stat(path.c_str(), &s) == 0) {
+    return S_ISDIR(s.st_mode);
+  }
+  return false;
+}
+
+std::string Client::_autoIndex(const std::string &path,
+                               const std::string &req_path) const {
+  DIR *dir;
+  struct dirent *ent;
+  std::ostringstream html;
+  html << "<html><head><title>Index of " << req_path << "</title></head>";
+  html << "<body style='font-family: Arial, sans-serif;'>";
+  html << "<h1>Index of " << req_path << "</h1><hr><ul>";
+  if ((dir = opendir(path.c_str())) != NULL) {
+    while ((ent = readdir(dir)) != NULL) {
+      std::string name = ent->d_name;
+      if (name == ".")
+        continue;
+      std::string slash = (req_path[req_path.size() - 1] == '/') ? "" : "/";
+      html << "<li><a href=\"" << req_path << slash << name << "\">" << name
+           << "</a></li>";
+    }
+    closedir(dir);
+  }
+  html << "</ul><hr></body></html>";
+  return html.str();
+}
+
+bool Client::_multiPart(const std::string &body, const std::string &boundary,
+                        std::string &out_filename,
+                        std::string &out_content) const {
+  std::string delimiter = "--" + boundary;
+  size_t pos = body.find(delimiter);
+
+  if (pos == std::string::npos)
+    return false;
+
+  // le nom du fichier
+  size_t filename_pos = body.find("filename=\"", pos);
+  if (filename_pos == std::string::npos)
+    return false;
+
+  filename_pos += 10; // avance après 'filename="'
+  size_t filename_end = body.find("\"", filename_pos);
+  out_filename = body.substr(filename_pos, filename_end - filename_pos);
+  size_t content_start = body.find("\r\n\r\n", filename_end);
+  if (content_start == std::string::npos)
+    return false;
+  content_start += 4;
+
+  // fin du fichier
+  size_t content_end = body.find(delimiter, content_start);
+  if (content_end == std::string::npos)
+    return false;
+
+  content_end -= 2; // enlève le délimiteur de fin
+  out_content = body.substr(content_start, content_end - content_start);
+  return true;
+}

@@ -7,8 +7,13 @@
 #include <sstream>
 #include <string>
 
-class HttpRequest {
+#include <cstdlib>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
 
+class HttpRequest {
 public:
   HttpRequest();
   ~HttpRequest();

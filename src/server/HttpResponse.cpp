@@ -83,14 +83,13 @@ void HttpResponse::autoDetectContentType(const std::string &path) {
 }
 
 std::string HttpResponse::toString() const {
-  std::ostringstream HttpResponse;
-  HttpResponse << "HTTP/1.1 " << _status_code << " " << _status_message
-               << "\r\n";
+  std::ostringstream response;
+  response << "HTTP/1.1 " << _status_code << " " << _status_message << "\r\n";
   for (std::map<std::string, std::string>::const_iterator it = _headers.begin();
        it != _headers.end(); ++it) {
-    HttpResponse << it->first << ": " << it->second << "\r\n";
+    response << it->first << ": " << it->second << "\r\n";
   }
-  HttpResponse << "\r\n";
-  HttpResponse << _body;
-  return HttpResponse.str();
+  response << "\r\n";
+  response << _body;
+  return response.str();
 }

@@ -78,5 +78,5 @@ std::string HttpRequest::getHeader(const std::string &key) const {
   if (it != _headers.end()) {
     return it->second;
   }
-  return ""; // si ya pas de header
+  return "";
 }
