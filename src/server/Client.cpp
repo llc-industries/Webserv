@@ -100,13 +100,22 @@ void Client::_handlePost(const Route &route) {
       }
     }
   }
-  std::string save_path = "./www/upload/" + save_filename;
+  std::string upload_dir = "";
+
+  if (route.loc != NULL && route.loc->uploadPath.empty() == false)
+    upload_dir = route.loc->uploadPath;
+  else
+    upload_dir = route.root + "/upload";
+
+  if (upload_dir[upload_dir.length() - 1] != '/')
+    upload_dir += "/";
+
+  std::string save_path = upload_dir + save_filename;
   std::ofstream outfile(save_path.c_str(), std::ios::binary);
 
-  if (outfile.is_open()) {
+  if (outfile.is_open() == true) {
     outfile.write(final_content.c_str(), final_content.size());
     outfile.close();
-
     _response.setStatusCode(201);
     _response.setHeader("Content-Type", "text/html");
     _response.setBody("<html><body><h1>Upload reussi ! Fichier : " +
