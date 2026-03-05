@@ -27,30 +27,36 @@ public:
   Server(const std::vector<ServerConfig> &config);
   ~Server();
 
+  static bool stopSignal;
+  static void sigintHandler(int _unused);
+
   void createSockets();
   void setupEpoll();
   void run();
 
-  void acceptConnection(int fd, const ServerConfig *context);
-  void closeClient(int client_fd);
-  void handleClientRead(int fd);
-  void handleClientWrite(int fd);
-
-  static void sigintHandler(int _unused);
-  static bool stopSignal;
-
 private:
-  const std::vector<ServerConfig> &_config;
+  Server(const Server &other);
+  Server &operator=(const Server &other);
 
-  std::map<int, const ServerConfig *> _socketMap;
   typedef std::map<int, const ServerConfig *>::iterator it_sock;
 
+  void _acceptConnection(int fd, const ServerConfig *context);
+  void _closeClient(int client_fd);
+  void _handleClientRead(int fd);
+  void _handleClientWrite(int fd);
+
+  void _socketFail(const std::string &funcName, struct addrinfo *res, int fd);
+
+  // Config
+  const std::vector<ServerConfig> &_config;
+
+  // Epoll instance
+  std::map<int, const ServerConfig *> _socketMap;
   int _epollFd;
   struct epoll_event _events[MAX_EVENTS];
 
+  // Current clients
   std::map<int, Client> _clientMap;
-
-  void _socketFail(const std::string &funcName, struct addrinfo *res, int fd);
 };
 
 #endif /* SERVER_HPP */

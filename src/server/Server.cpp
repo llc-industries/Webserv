@@ -12,7 +12,12 @@ Server::~Server() {
     close(_epollFd);
 }
 
-/* -------- INIT FUNCTIONS -------- */
+void Server::sigintHandler(int _unused) {
+  (void)_unused;
+  Server::stopSignal = true;
+}
+
+/* -------- PUBLIC METHODS -------- */
 
 // clang-format off
 
@@ -79,13 +84,6 @@ void Server::setupEpoll() {
   LOG_INFO("epoll instance is ready");
 }
 
-/* -------------- EVENT LOOP -------------- */
-
-void Server::sigintHandler(int _unused) {
-  (void)_unused;
-  Server::stopSignal = true;
-}
-
 void Server::run() {
   if (signal(SIGINT, sigintHandler) == SIG_ERR)
     throw std::runtime_error("Couldn't setup stop signal (CTRL+C)");
@@ -102,22 +100,22 @@ void Server::run() {
       it_sock it = _socketMap.find(currentFd);
 
       if (it != _socketMap.end()) { // New client
-        acceptConnection(currentFd, it->second);
+        _acceptConnection(currentFd, it->second);
       } else { // Existing client
         if (eventMask & (EPOLLERR | EPOLLHUP))
-          closeClient(currentFd);
+          _closeClient(currentFd);
         else if (eventMask & EPOLLIN) // recv()
-          handleClientRead(currentFd);
+          _handleClientRead(currentFd);
         else if (eventMask & EPOLLOUT) // send()
-          handleClientWrite(currentFd);
+          _handleClientWrite(currentFd);
       }
     }
   }
 }
 
-/* -------------- CLIENT SPECIFIC METHODS -------------- */
+/* -------------- PRIVATE METHODS -------------- */
 
-void Server::acceptConnection(int fd, const ServerConfig *config) {
+void Server::_acceptConnection(int fd, const ServerConfig *config) {
   sockaddr_in client_addr;
   socklen_t client_addr_len = sizeof(client_addr);
 
@@ -151,22 +149,22 @@ void Server::acceptConnection(int fd, const ServerConfig *config) {
                      << ntohs(client_addr.sin_port));
 }
 
-void Server::closeClient(int client_fd) {
+void Server::_closeClient(int client_fd) {
   epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL);
   close(client_fd);
   _clientMap.erase(client_fd);
   LOG_CLOSE("FD = " << client_fd << " Closed client connection");
 }
 
-void Server::handleClientRead(int fd) {
+void Server::_handleClientRead(int fd) {
   char buf[4096];
   ssize_t retval = recv(fd, buf, sizeof(buf), 0); // J'ai remove le -1 du sizeof
   if (retval == -1) {
     LOG_ERR("recv(): " + std::string(strerror(errno)));
-    closeClient(fd);
+    _closeClient(fd);
     return;
   } else if (retval == 0) {
-    closeClient(fd);
+    _closeClient(fd);
     return;
   }
   LOG_RECV("FD = " << fd << " recv() received " << retval << " bytes");
@@ -182,7 +180,7 @@ void Server::handleClientRead(int fd) {
 }
 
 // TODO: ne pas envoyer tout d'un coup en mode bourrin
-void Server::handleClientWrite(int fd) {
+void Server::_handleClientWrite(int fd) {
   Client &client = _clientMap.find(fd)->second;
   if (client.isResponseReady() == false)
     client.buildResponse();
@@ -195,7 +193,7 @@ void Server::handleClientWrite(int fd) {
       LOG_ERR("send(): " + std::string(strerror(errno)));
     else
       LOG_SEND("FD = " << fd << " send() sent " << retval << " bytes");
-    closeClient(fd);
+    _closeClient(fd);
   }
 }
 
