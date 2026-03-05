@@ -1,5 +1,7 @@
 #include "Server.hpp"
 
+bool Server::stopSignal = false;
+
 Server::Server(const std::vector<ServerConfig> &config)
     : _config(config), _epollFd(-1) {}
 
@@ -79,11 +81,19 @@ void Server::setupEpoll() {
 
 /* -------------- EVENT LOOP -------------- */
 
+void Server::sigintHandler(int _unused) {
+  (void)_unused;
+  Server::stopSignal = true;
+}
+
 void Server::run() {
+  if (signal(SIGINT, sigintHandler) == SIG_ERR)
+    throw std::runtime_error("Couldn't setup stop signal (CTRL+C)");
+
   LOG_INFO("---------- Server is running ! ----------");
-  while (42) {
+  while (Server::stopSignal == false) {
     int nfds = epoll_wait(_epollFd, _events, MAX_EVENTS, -1);
-    if (nfds == -1)
+    if (nfds == -1 && Server::stopSignal == false)
       throw std::runtime_error("epoll_wait(): " + std::string(strerror(errno)));
 
     for (int i = 0; i < nfds; i++) {

@@ -6,13 +6,15 @@
 #include <iostream>
 #include <stdlib.h>
 
+#define DEFAULT_CONF "conf/test.conf"
+
 std::string findConfigFile(int argc, char **argv) {
   std::string configPath;
 
   if (argc < 2) {
     LOG_WARN("No arguments provided, using default configuration file");
-    LOG_INFO("Using conf/test.conf as config file");
-    configPath = "conf/test.conf";
+    LOG_INFO("Using " DEFAULT_CONF " as config file");
+    configPath = DEFAULT_CONF;
   } else if (argc > 2) {
     LOG_WARN("Too many arguments provided");
     LOG_INFO("Using \"" << argv[1] << "\" as config file");
@@ -50,5 +52,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  std::cout << "\nBye" << std::endl;
   return EXIT_SUCCESS;
 }

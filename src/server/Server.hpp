@@ -7,16 +7,18 @@
 
 #include <algorithm>
 #include <cstring>
-#include <fcntl.h>
 #include <map>
-#include <netdb.h>
 #include <sstream>
+#include <vector>
+
+#include <fcntl.h>
+#include <netdb.h>
+#include <signal.h>
 #include <string.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <vector>
 
 #define MAX_EVENTS 64
 
@@ -33,6 +35,9 @@ public:
   void closeClient(int client_fd);
   void handleClientRead(int fd);
   void handleClientWrite(int fd);
+
+  static void sigintHandler(int _unused);
+  static bool stopSignal;
 
 private:
   const std::vector<ServerConfig> &_config;
