@@ -48,7 +48,7 @@ private:
   //GET  utils
   bool _handleDirectory(std::string &target_path, const Route &route);
   //POST utils
-  void _processMultipart(std::string &filename, std::string &content);
+  void _parseMultipart(std::string &filename, std::string &content);
   std::string _getUploadDirectory(const Route &route) const;
   void _saveFile(const std::string &save_path, const std::string &content, const std::string &filename);
 

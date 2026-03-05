@@ -91,7 +91,7 @@ void Client::_handlePost(const Route &route) {
   std::string body = _request.getBody();
   std::string filename = "uploaded_file.txt";
 
-  _processMultipart(filename, body);
+  _parseMultipart(filename, body);
 
   std::string uploaded_dir = _getUploadDirectory(route);
   std::string path = uploaded_dir + filename;
@@ -99,7 +99,7 @@ void Client::_handlePost(const Route &route) {
   _saveFile(path, body, filename);
 }
 
-void Client::_processMultipart(std::string &filename, std::string &content){
+void Client::_parseMultipart(std::string &filename, std::string &content){
    std::string type = _request.getHeader("Content-Type");
 
     if (type.find("multipart/form-data") != std::string::npos) {
