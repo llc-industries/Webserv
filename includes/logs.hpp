@@ -38,17 +38,21 @@
 
 // Network logs
 
-#define LOG_ACCEPT(x)                                                          \
-  std::cout << "[ " << GREEN << "ACCEPT" << RESET << " ] " << x << '\n'
+#define LOG_ACCEPT(x, y)                                                       \
+  std::cout << "[" << x << "] [" << GREEN << "ACCEPT" << RESET << "] " << y    \
+            << '\n'
 
-#define LOG_CLOSE(x)                                                           \
-  std::cout << "[ " << YELLOW << "CLOSE" << RESET << " ] " << x << '\n'
+#define LOG_CLOSE(x, y)                                                        \
+  std::cout << "[" << x << "] [" << YELLOW << "CLOSE" << RESET << "] " << y    \
+            << '\n'
 
-#define LOG_RECV(x)                                                            \
-  std::cout << "[ " << SILVER << "RECV" << RESET << " ] " << x << '\n'
+#define LOG_RECV(x, y)                                                         \
+  std::cout << "[" << x << "] [" << SILVER << "RECV" << RESET << "] " << y     \
+            << '\n'
 
-#define LOG_SEND(x)                                                            \
-  std::cout << "[ " << WHITE << "SEND" << RESET << " ] " << x << '\n'
+#define LOG_SEND(x, y)                                                         \
+  std::cout << "[" << x << "] [" << WHITE << "SEND" << RESET << "] " << y      \
+            << '\n'
 
 // TODO: CGI / HTTP Status logs ?
 

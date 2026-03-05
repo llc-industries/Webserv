@@ -1,7 +1,8 @@
 #include "Client.hpp"
 
 Client::Client(const ServerConfig *context)
-    : _context(context), _isReqComplete(false), _isRespReady(false) {}
+    : _context(context), _isReqComplete(false), _bytesSent(0),
+      _isRespReady(false) {}
 
 Client::~Client() {}
 
@@ -86,7 +87,6 @@ bool Client::_handleDirectory(std::string &target_path, const Route &route) {
   return true;
 }
 
-
 void Client::_handlePost(const Route &route) {
   std::string body = _request.getBody();
   std::string filename = "uploaded_file.txt";
@@ -99,10 +99,10 @@ void Client::_handlePost(const Route &route) {
   _saveFile(path, body, filename);
 }
 
-void Client::_parseMultipart(std::string &filename, std::string &content){
-   std::string type = _request.getHeader("Content-Type");
+void Client::_parseMultipart(std::string &filename, std::string &content) {
+  std::string type = _request.getHeader("Content-Type");
 
-    if (type.find("multipart/form-data") != std::string::npos) {
+  if (type.find("multipart/form-data") != std::string::npos) {
     size_t boundary_pos = type.find("boundary=");
     if (boundary_pos != std::string::npos) {
       std::string boundary = type.substr(boundary_pos + 9);
@@ -120,8 +120,8 @@ void Client::_parseMultipart(std::string &filename, std::string &content){
   }
 }
 
-std::string Client::_getUploadDirectory(const Route &route) const{
- std::string upload_dir = "";
+std::string Client::_getUploadDirectory(const Route &route) const {
+  std::string upload_dir = "";
 
   if (route.loc != NULL && route.loc->uploadPath.empty() == false)
     upload_dir = route.loc->uploadPath;
@@ -133,22 +133,23 @@ std::string Client::_getUploadDirectory(const Route &route) const{
   return upload_dir;
 }
 
-void Client::_saveFile(const std::string &save_path, const std::string &content, const std::string &filename){
+void Client::_saveFile(const std::string &save_path, const std::string &content,
+                       const std::string &filename) {
   std::ofstream outfile(save_path.c_str(), std::ios::binary);
 
-  if (!outfile.is_open()){
+  if (!outfile.is_open()) {
     _setError(500);
     return;
   }
 
-    outfile.write(content.c_str(), content.size());
-    outfile.close();
+  outfile.write(content.c_str(), content.size());
+  outfile.close();
 
-    _response.setStatusCode(201);
-    _response.setHeader("Content-Type", "text/html");
-    _response.setBody("<html><body><h1>Upload reussi ! Fichier : " +
-                      filename + " sauvegarde.</h1></body></html>");
-          
+  _response.setStatusCode(201);
+  _response.setHeader("Content-Type", "text/html");
+  _response.setBody("<html><body><h1>Upload reussi ! Fichier : " + filename +
+                    " sauvegarde.</h1></body></html>");
+
   _rawResponse = _response.toString();
   _isRespReady = true;
 }
@@ -168,6 +169,6 @@ void Client::_handleDelete(const Route &route) {
   _isRespReady = true;
 }
 
-void Client::_handleCgi(const Route &route){
-  //on instancie le cgi et on l'execute
+void Client::_handleCgi(const Route &route) {
+  // on instancie le cgi et on l'execute
 }

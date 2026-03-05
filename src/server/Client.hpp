@@ -4,9 +4,11 @@
 #include "ConfigStructs.hpp"
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
+
 #include <cstdio>
-#include <dirent.h>
 #include <fstream>
+
+#include <dirent.h>
 #include <sys/stat.h>
 
 class Client {
@@ -20,6 +22,8 @@ public:
   void swallow(const char *buf, ssize_t bytesRead);
   const char *getResponse() const;
   size_t getResponseLength() const;
+  size_t getBytesSent() const;
+  void addBytesSent(size_t value);
   bool isRequestComplete() const;
   bool isResponseReady() const;
 
@@ -39,20 +43,22 @@ private:
 
   HttpResponse _response;
   std::string _rawResponse;
+  size_t _bytesSent;
   bool _isRespReady;
 
   void _handleGet(const Route &route);
   void _handlePost(const Route &route);
   void _handleDelete(const Route &route);
 
-  //GET  utils
+  // GET  utils
   bool _handleDirectory(std::string &target_path, const Route &route);
-  //POST utils
+  // POST utils
   void _parseMultipart(std::string &filename, std::string &content);
   std::string _getUploadDirectory(const Route &route) const;
-  void _saveFile(const std::string &save_path, const std::string &content, const std::string &filename);
+  void _saveFile(const std::string &save_path, const std::string &content,
+                 const std::string &filename);
 
-  //CGI
+  // CGI
   void _handleCgi(const Route &route);
 
   // In ClientUtils.cpp
@@ -65,7 +71,6 @@ private:
                          const std::string &req_path) const;
   bool _multiPart(const std::string &body, const std::string &boundary,
                   std::string &outfile, std::string &outcontent) const;
-
 };
 
 #endif /* CLIENT_H */

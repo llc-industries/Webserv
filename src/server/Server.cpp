@@ -144,16 +144,14 @@ void Server::_acceptConnection(int fd, const ServerConfig *config) {
   _clientMap.insert(std::make_pair(client_fd, Client(config)));
 
   // TODO: Format IP address clean -> byte.byte.byte.byte:port
-  LOG_ACCEPT("FD = " << client_fd << " New client.  IP/Port = "
-                     << ntohl(client_addr.sin_addr.s_addr) << ":"
-                     << ntohs(client_addr.sin_port));
+  LOG_ACCEPT(client_fd, "New connection");
 }
 
 void Server::_closeClient(int client_fd) {
   epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL);
   close(client_fd);
   _clientMap.erase(client_fd);
-  LOG_CLOSE("FD = " << client_fd << " Closed client connection");
+  LOG_CLOSE(client_fd, "Closed client connection");
 }
 
 void Server::_handleClientRead(int fd) {
@@ -167,7 +165,7 @@ void Server::_handleClientRead(int fd) {
     _closeClient(fd);
     return;
   }
-  LOG_RECV("FD = " << fd << " recv() received " << retval << " bytes");
+  LOG_RECV(fd, "recv() received " << retval << " bytes");
   Client &client = _clientMap.find(fd)->second;
   client.swallow(buf, retval);
   if (client.isRequestComplete() == true) {
@@ -179,21 +177,27 @@ void Server::_handleClientRead(int fd) {
   }
 }
 
-// TODO: ne pas envoyer tout d'un coup en mode bourrin
 void Server::_handleClientWrite(int fd) {
   Client &client = _clientMap.find(fd)->second;
   if (client.isResponseReady() == false)
     client.buildResponse();
 
-  ssize_t retval;
-
   if (client.isResponseReady() == true) {
-    retval = send(fd, client.getResponse(), client.getResponseLength(), 0);
-    if (retval == -1)
+    ssize_t retval;
+    size_t rest = client.getResponseLength() - client.getBytesSent();
+
+    retval = send(fd, client.getResponse() + client.getBytesSent(), rest, 0);
+    if (retval <= 0) {
       LOG_ERR("send(): " + std::string(strerror(errno)));
-    else
-      LOG_SEND("FD = " << fd << " send() sent " << retval << " bytes");
-    _closeClient(fd);
+      _closeClient(fd);
+      return;
+    } else {
+      LOG_SEND(fd, "send() sent " << retval << " bytes");
+      client.addBytesSent(retval);
+    }
+
+    if (client.getBytesSent() >= client.getResponseLength())
+      _closeClient(fd);
   }
 }
 

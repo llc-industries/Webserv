@@ -9,6 +9,8 @@ void Client::swallow(const char *buf, ssize_t bytesRead) {
 
 const char *Client::getResponse() const { return _rawResponse.c_str(); }
 size_t Client::getResponseLength() const { return _rawResponse.length(); }
+size_t Client::getBytesSent() const { return _bytesSent; }
+void Client::addBytesSent(size_t value) { _bytesSent += value; }
 bool Client::isRequestComplete() const { return _isReqComplete; }
 bool Client::isResponseReady() const { return _isRespReady; }
 
