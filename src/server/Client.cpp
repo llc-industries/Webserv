@@ -19,6 +19,10 @@ void Client::buildResponse() {
     return;
   }
 
+  // if (route.loc != NULL && !route.loc->cgiPath.empty()){
+  //   _handleCgi(route);
+  //   return;
+  // }
   if (_request.getMethod() == "GET")
     _handleGet(route);
   else if (_request.getMethod() == "DELETE")
@@ -162,4 +166,8 @@ void Client::_handleDelete(const Route &route) {
 
   _rawResponse = _response.toString();
   _isRespReady = true;
+}
+
+void Client::_handleCgi(const Route &route){
+  //on instancie le cgi et on l'execute
 }

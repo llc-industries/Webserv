@@ -45,6 +45,16 @@ private:
   void _handlePost(const Route &route);
   void _handleDelete(const Route &route);
 
+  //GET  utils
+  bool _handleDirectory(std::string &target_path, const Route &route);
+  //POST utils
+  void _processMultipart(std::string &filename, std::string &content);
+  std::string _getUploadDirectory(const Route &route) const;
+  void _saveFile(const std::string &save_path, const std::string &content, const std::string &filename);
+
+  //CGI
+  void _handleCgi(const Route &route);
+
   // In ClientUtils.cpp
   int _validateRequest() const;
   Route _resolveRoute() const;
@@ -55,13 +65,7 @@ private:
                          const std::string &req_path) const;
   bool _multiPart(const std::string &body, const std::string &boundary,
                   std::string &outfile, std::string &outcontent) const;
-  //GET  utils
-  bool _handleDirectory(std::string &target_path, const Route &route);
-  //POST utils
-  void _processMultipart(std::string &filename, std::string &content);
-  std::string _getUploadDirectory(const Route &route) const;
-  void _saveFile(const std::string &save_path, const std::string &content, const std::string &filename);
-  
+
 };
 
 #endif /* CLIENT_H */
