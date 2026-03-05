@@ -2,7 +2,7 @@
 
 Client::Client(const ServerConfig *context)
     : _context(context), _isReqComplete(false), _bytesSent(0),
-      _isRespReady(false) {}
+      _isRespReady(false), _lastActivity(std::time(NULL)) {}
 
 Client::~Client() {}
 

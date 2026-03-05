@@ -1,6 +1,7 @@
 #include "Client.hpp"
 
 void Client::swallow(const char *buf, ssize_t bytesRead) {
+  _lastActivity = std::time(NULL);
   _request.swallow(buf, bytesRead);
   _isReqComplete = _request.isComplete();
 }
@@ -13,6 +14,7 @@ size_t Client::getBytesSent() const { return _bytesSent; }
 void Client::addBytesSent(size_t value) { _bytesSent += value; }
 bool Client::isRequestComplete() const { return _isReqComplete; }
 bool Client::isResponseReady() const { return _isRespReady; }
+std::time_t Client::getLastActivity() const { return _lastActivity; }
 
 /* ---------- RESPONSE HELPERS ---------- */
 
@@ -36,7 +38,6 @@ int Client::_validateRequest() const {
 // Le bloc location si besoin
 // Les path root et full path
 Client::Route Client::_resolveRoute() const {
-
   Route ret;
   size_t maxLen = 0;
   std::string path = _request.getPath();

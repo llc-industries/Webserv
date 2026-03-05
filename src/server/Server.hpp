@@ -21,6 +21,8 @@
 #include <unistd.h>
 
 #define MAX_EVENTS 64
+#define EPOLL_TIMEOUT 1500 // 1,5sec
+#define CLIENT_TIMEOUT 30  // 30sec
 
 class Server {
 public:
@@ -28,7 +30,7 @@ public:
   ~Server();
 
   static bool stopSignal;
-  static void sigintHandler(int _unused);
+  static void sigintHandler(int unused);
 
   void createSockets();
   void setupEpoll();
@@ -39,11 +41,13 @@ private:
   Server &operator=(const Server &other);
 
   typedef std::map<int, const ServerConfig *>::iterator it_sock;
+  typedef std::map<int, Client>::iterator it_client;
 
   void _acceptConnection(int fd, const ServerConfig *context);
   void _closeClient(int client_fd);
   void _handleClientRead(int fd);
   void _handleClientWrite(int fd);
+  void _handleTimeouts();
 
   void _socketFail(const std::string &funcName, struct addrinfo *res, int fd);
 

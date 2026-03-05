@@ -6,6 +6,7 @@
 #include "HttpResponse.hpp"
 
 #include <cstdio>
+#include <ctime>
 #include <fstream>
 
 #include <dirent.h>
@@ -26,6 +27,7 @@ public:
   void addBytesSent(size_t value);
   bool isRequestComplete() const;
   bool isResponseReady() const;
+  std::time_t getLastActivity() const;
 
 private:
   struct Route {
@@ -45,6 +47,8 @@ private:
   std::string _rawResponse;
   size_t _bytesSent;
   bool _isRespReady;
+
+  std::time_t _lastActivity;
 
   void _handleGet(const Route &route);
   void _handlePost(const Route &route);

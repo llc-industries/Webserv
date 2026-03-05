@@ -12,18 +12,16 @@ Server::~Server() {
     close(_epollFd);
 }
 
-void Server::sigintHandler(int _unused) {
-  (void)_unused;
+void Server::sigintHandler(int unused) {
+  (void)unused;
   Server::stopSignal = true;
 }
 
 /* -------- PUBLIC METHODS -------- */
 
 // clang-format off
-
 // Create sockets and associate them with config context
 void Server::createSockets() {
-  // Init hints for getaddrinfo()
   struct addrinfo hints;
   std::memset(&hints, 0, sizeof(addrinfo));
   hints.ai_family = AF_INET;
@@ -63,7 +61,7 @@ void Server::createSockets() {
       freeaddrinfo(res);
     }
   }
-  LOG_INFO(_socketMap.size() << " Sockets created");
+  LOG_INFO(_socketMap.size() << " sockets created");
 }
 // clang-format on
 
@@ -86,11 +84,11 @@ void Server::setupEpoll() {
 
 void Server::run() {
   if (signal(SIGINT, sigintHandler) == SIG_ERR)
-    throw std::runtime_error("Couldn't setup stop signal (CTRL+C)");
-
+    throw std::runtime_error("Couldn't setup SIGINT (CTRL+C)");
   LOG_INFO("---------- Server is running ! ----------");
+
   while (Server::stopSignal == false) {
-    int nfds = epoll_wait(_epollFd, _events, MAX_EVENTS, -1);
+    int nfds = epoll_wait(_epollFd, _events, MAX_EVENTS, EPOLL_TIMEOUT);
     if (nfds == -1 && Server::stopSignal == false)
       throw std::runtime_error("epoll_wait(): " + std::string(strerror(errno)));
 
@@ -110,6 +108,7 @@ void Server::run() {
           _handleClientWrite(currentFd);
       }
     }
+    _handleTimeouts();
   }
 }
 
@@ -198,6 +197,21 @@ void Server::_handleClientWrite(int fd) {
 
     if (client.getBytesSent() >= client.getResponseLength())
       _closeClient(fd);
+  }
+}
+
+void Server::_handleTimeouts() {
+  std::time_t now = std::time(NULL);
+
+  it_client it = _clientMap.begin();
+  while (it != _clientMap.end()) {
+    if (now - it->second.getLastActivity() >= CLIENT_TIMEOUT) {
+      int fdSave = it->first;
+      ++it;
+      LOG_CLOSE(fdSave, "Client has timed out");
+      _closeClient(fdSave);
+    } else
+      ++it;
   }
 }
 
