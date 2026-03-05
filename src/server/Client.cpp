@@ -35,28 +35,8 @@ void Client::_handleGet(const Route &route) {
   std::string target_path = route.full_path;
 
   if (_isDir(target_path)) {
-    std::string index_path =
-        target_path + (target_path[target_path.size() - 1] == '/' ? "" : "/") +
-        "index.html";
-    std::ifstream index_file(index_path.c_str());
-
-    if (index_file.is_open()) {
-      target_path = index_path;
-    } else {
-      if (route.loc != NULL && route.loc->autoindex == true) {
-        _response.setStatusCode(200);
-        _response.setHeader("Content-Type", "text/html");
-        _response.setBody(_autoIndex(target_path, _request.getPath()));
-
-        std::string full_res = _response.toString();
-        _rawResponse = _response.toString();
-        _isRespReady = true;
-        return;
-      } else {
-        _setError(403);
-        return;
-      }
-    }
+    if (_handleDirectory(target_path, route) == true)
+      return;
   }
 
   std::ifstream file(target_path.c_str(), std::ios::binary);
@@ -77,30 +57,67 @@ void Client::_handleGet(const Route &route) {
   _isRespReady = true;
 }
 
+bool Client::_handleDirectory(std::string &target_path, const Route &route) {
+  std::string index_path =
+      target_path + (target_path[target_path.size() - 1] == '/' ? "" : "/") +
+      "index.html";
+  std::ifstream index_file(index_path.c_str());
+
+  if (index_file.is_open()) {
+    target_path = index_path;
+    return false;
+  }
+  if (route.loc != NULL && route.loc->autoindex == true) {
+    _response.setStatusCode(200);
+    _response.setHeader("Content-Type", "text/html");
+    _response.setBody(_autoIndex(target_path, _request.getPath()));
+
+    std::string full_res = _response.toString();
+    _rawResponse = _response.toString();
+    _isRespReady = true;
+    return true;
+  }
+
+  _setError(403);
+  return true;
+}
+
+
 void Client::_handlePost(const Route &route) {
-  std::string body_content = _request.getBody();
-  std::string content_type = _request.getHeader("Content-Type");
+  std::string body = _request.getBody();
+  std::string filename = "uploaded_file.txt";
 
-  std::string save_filename = "uploaded_file.txt";
-  std::string final_content = body_content;
+  _processMultipart(filename, body);
 
-  if (content_type.find("multipart/form-data") != std::string::npos) {
-    size_t boundary_pos = content_type.find("boundary=");
+  std::string uploaded_dir = _getUploadDirectory(route);
+  std::string path = uploaded_dir + filename;
+
+  _saveFile(path, body, filename);
+}
+
+void Client::_processMultipart(std::string &filename, std::string &content){
+   std::string type = _request.getHeader("Content-Type");
+
+    if (type.find("multipart/form-data") != std::string::npos) {
+    size_t boundary_pos = type.find("boundary=");
     if (boundary_pos != std::string::npos) {
-      std::string boundary = content_type.substr(boundary_pos + 9);
+      std::string boundary = type.substr(boundary_pos + 9);
       std::string extracted_filename;
       std::string extracted_content;
 
-      if (_multiPart(body_content, boundary, extracted_filename,
+      if (_multiPart(content, boundary, extracted_filename,
                      extracted_content)) {
         if (!extracted_filename.empty()) {
-          save_filename = extracted_filename;
-          final_content = extracted_content;
+          filename = extracted_filename;
+          content = extracted_content;
         }
       }
     }
   }
-  std::string upload_dir = "";
+}
+
+std::string Client::_getUploadDirectory(const Route &route) const{
+ std::string upload_dir = "";
 
   if (route.loc != NULL && route.loc->uploadPath.empty() == false)
     upload_dir = route.loc->uploadPath;
@@ -109,22 +126,25 @@ void Client::_handlePost(const Route &route) {
 
   if (upload_dir[upload_dir.length() - 1] != '/')
     upload_dir += "/";
+  return upload_dir;
+}
 
-  std::string save_path = upload_dir + save_filename;
+void Client::_saveFile(const std::string &save_path, const std::string &content, const std::string &filename){
   std::ofstream outfile(save_path.c_str(), std::ios::binary);
 
-  if (outfile.is_open() == true) {
-    outfile.write(final_content.c_str(), final_content.size());
-    outfile.close();
-    _response.setStatusCode(201);
-    _response.setHeader("Content-Type", "text/html");
-    _response.setBody("<html><body><h1>Upload reussi ! Fichier : " +
-                      save_filename + " sauvegarde.</h1></body></html>");
-  } else {
+  if (!outfile.is_open()){
     _setError(500);
     return;
   }
 
+    outfile.write(content.c_str(), content.size());
+    outfile.close();
+
+    _response.setStatusCode(201);
+    _response.setHeader("Content-Type", "text/html");
+    _response.setBody("<html><body><h1>Upload reussi ! Fichier : " +
+                      filename + " sauvegarde.</h1></body></html>");
+          
   _rawResponse = _response.toString();
   _isRespReady = true;
 }
