@@ -9,19 +9,22 @@
 #include <sys/wait.h>
 #include <cstdlib>
 #include <cstring>
+#include <fcntl.h>
 
 class CgiHandler{
     public:
         CgiHandler(const HttpRequest& request, const std::string& scriptPath, const std::string& cgiBinPath);
         ~CgiHandler();
 
-        std::string executeCgi();
+        int executeCgi(pid_t &out_pid);//execute le cgi
     private:
         const HttpRequest& _request;
         std::string _scriptPath;
         std::string _cgiBinPath;
+        std::map<std::string, std::string>_envMap;
 
         void _initEnv();//initialise les variables d'env 
+        char** _getEnvArray() const;
 };
 
 

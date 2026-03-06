@@ -96,9 +96,12 @@ void Server::run() {
       int currentFd = _events[i].data.fd;
       uint32_t eventMask = _events[i].events;
       it_sock it = _socketMap.find(currentFd);
+      std::map<int, int>::iterator it_cgi = _cgiMap.find(currentFd);
 
       if (it != _socketMap.end()) { // New client
         _acceptConnection(currentFd, it->second);
+      } else if (it_cgi != _cgiMap.end()) {
+        handleCgiRead(currentFd);
       } else { // Existing client
         if (eventMask & (EPOLLERR | EPOLLHUP))
           _closeClient(currentFd);
@@ -143,14 +146,14 @@ void Server::_acceptConnection(int fd, const ServerConfig *config) {
   _clientMap.insert(std::make_pair(client_fd, Client(config)));
 
   // TODO: Format IP address clean -> byte.byte.byte.byte:port
-  LOG_ACCEPT(client_fd, "New connection");
+  //LOG_ACCEPT(client_fd, "New connection");
 }
 
 void Server::_closeClient(int client_fd) {
   epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL);
   close(client_fd);
   _clientMap.erase(client_fd);
-  LOG_CLOSE(client_fd, "Closed client connection");
+  //LOG_CLOSE(client_fd, "Closed client connection");
 }
 
 void Server::_handleClientRead(int fd) {
@@ -164,7 +167,7 @@ void Server::_handleClientRead(int fd) {
     _closeClient(fd);
     return;
   }
-  LOG_RECV(fd, "recv() received " << retval << " bytes");
+  //LOG_RECV(fd, "recv() received " << retval << " bytes");
   Client &client = _clientMap.find(fd)->second;
   client.swallow(buf, retval);
   if (client.isRequestComplete() == true) {
@@ -178,9 +181,14 @@ void Server::_handleClientRead(int fd) {
 
 void Server::_handleClientWrite(int fd) {
   Client &client = _clientMap.find(fd)->second;
-  if (client.isResponseReady() == false)
+  if (client.isResponseReady() == false){
     client.buildResponse();
 
+    if (client.getCgiFd() != -1){
+      _registerCgi(fd);
+      return;
+    }
+  }
   if (client.isResponseReady() == true) {
     ssize_t retval;
     size_t rest = client.getResponseLength() - client.getBytesSent();
@@ -191,7 +199,7 @@ void Server::_handleClientWrite(int fd) {
       _closeClient(fd);
       return;
     } else {
-      LOG_SEND(fd, "send() sent " << retval << " bytes");
+      //LOG_SEND(fd, "send() sent " << retval << " bytes");
       client.addBytesSent(retval);
     }
 
@@ -208,7 +216,7 @@ void Server::_handleTimeouts() {
     if (now - it->second.getLastActivity() >= CLIENT_TIMEOUT) {
       int fdSave = it->first;
       ++it;
-      LOG_CLOSE(fdSave, "Client has timed out");
+      //LOG_CLOSE(fdSave, "Client has timed out");
       _closeClient(fdSave);
     } else
       ++it;
@@ -222,4 +230,53 @@ void Server::_socketFail(const std::string &funcName, struct addrinfo *res,
   if (res != NULL)
     freeaddrinfo(res);
   throw std::runtime_error(funcName + "(): " + strerror(errno));
+}
+
+void Server::_registerCgi(int client_fd) {
+  Client &client = _clientMap.find(client_fd)->second;
+  int cgiFd = client.getCgiFd();
+
+  if (cgiFd != -1){
+    _cgiMap[cgiFd] = client_fd;
+
+    epoll_event ev;
+    std::memset(&ev, 0, sizeof(ev));
+    ev.events = EPOLLIN;
+    ev.data.fd = cgiFd;
+    epoll_ctl(_epollFd, EPOLL_CTL_ADD, cgiFd, &ev);
+
+    ev.events = 0;
+    ev.data.fd = client_fd;
+    epoll_ctl(_epollFd, EPOLL_CTL_MOD, client_fd, &ev);
+  }
+}
+
+void Server::handleCgiRead(int cgi_fd){
+  int client_fd = _cgiMap[cgi_fd];
+  Client &client = _clientMap.find(client_fd)->second;
+
+  char buf[4096];
+  ssize_t bytes = read(cgi_fd, buf, sizeof(buf));
+
+  if (bytes > 0){
+    client.appendCgiOutput(buf, bytes);
+  } else if (bytes == 0){
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgi_fd, NULL);
+    close(cgi_fd);
+    _cgiMap.erase(cgi_fd);
+
+    waitpid(client.getCgiPid(), NULL, WNOHANG);
+
+    client.parseCgiResponse();
+
+    epoll_event ev;
+    std::memset(&ev, 0, sizeof(ev));
+    ev.events = EPOLLOUT;
+    ev.data.fd = client_fd;
+    epoll_ctl(_epollFd, EPOLL_CTL_MOD, client_fd, &ev);
+  } else {
+    LOG_ERR("CGI read error");
+    _closeClient(client_fd);
+  }
+
 }

@@ -61,6 +61,10 @@ private:
 
   // Current clients
   std::map<int, Client> _clientMap;
+  //CGI
+  std::map<int, int> _cgiMap;
+  void _registerCgi(int client_fd);
+  void handleCgiRead(int cgi_fd);
 };
 
 #endif /* SERVER_HPP */

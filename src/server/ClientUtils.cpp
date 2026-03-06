@@ -40,12 +40,27 @@ int Client::_validateRequest() const {
 Client::Route Client::_resolveRoute() const {
   Route ret;
   size_t maxLen = 0;
-  std::string path = _request.getPath();
+  //Extraction du path (sans ?)
+  std::string full_req_path = _request.getPath();
+  std::string path = full_req_path;
+
+  size_t query_pos = full_req_path.find('?');
+  if (query_pos != std::string::npos){
+    path = full_req_path.substr(0, query_pos);
+  }
 
   // Find appropriate location
   for (size_t i = 0; i < _context->locations.size(); i++) {
     const std::string &locPath = _context->locations[i].path;
-    if (path.find(locPath) == 0 && locPath.length() > maxLen) {
+    if (locPath.length() > 1 && locPath[0] == '*'){
+      std::string ext = locPath.substr(1);
+
+      if (path.length() >= ext.length() && path.compare(path.length() - ext.length(), ext.length(), ext) == 0){
+        ret.loc = &(_context->locations[i]);
+        break;
+      } 
+    }
+    else if (path.find(locPath) == 0 && locPath.length() > maxLen) {
       ret.loc = &(_context->locations[i]);
       maxLen = locPath.length();
     }

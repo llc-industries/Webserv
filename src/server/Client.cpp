@@ -2,7 +2,7 @@
 
 Client::Client(const ServerConfig *context)
     : _context(context), _isReqComplete(false), _bytesSent(0),
-      _isRespReady(false), _lastActivity(std::time(NULL)) {}
+      _isRespReady(false), _lastActivity(std::time(NULL)), _cgiFd(-1) {}
 
 Client::~Client() {}
 
@@ -20,10 +20,10 @@ void Client::buildResponse() {
     return;
   }
 
-  // if (route.loc != NULL && !route.loc->cgiPath.empty()){
-  //   _handleCgi(route);
-  //   return;
-  // }
+  if (route.loc != NULL && !route.loc->cgiPath.empty()){
+    _handleCgi(route);
+    return;
+  }
   if (_request.getMethod() == "GET")
     _handleGet(route);
   else if (_request.getMethod() == "DELETE")
@@ -170,5 +170,31 @@ void Client::_handleDelete(const Route &route) {
 }
 
 void Client::_handleCgi(const Route &route) {
-  // on instancie le cgi et on l'execute
+  CgiHandler cgi(_request, route.full_path,
+                 route.loc->cgiPath);
+
+  _cgiFd = cgi.executeCgi(_cgiPid);
+  if (_cgiFd == -1) {
+    _setError(500);
+    return;
+  }
+}
+
+void Client::parseCgiResponse() {
+  size_t header_end = _cgiOutput.find("\r\n\r\n");
+  if (header_end == std::string::npos)
+    header_end = _cgiOutput.find("\n\n");
+  std::string body = "";
+  if (header_end != std::string::npos) {
+    body = _cgiOutput.substr(header_end +
+                             (_cgiOutput[header_end] == '\r' ? 4 : 2));
+  } else {
+    body = _cgiOutput;
+  }
+  _response.setStatusCode(200);
+  _response.setHeader("Content-Type", "text/html");
+  _response.setBody(body);
+
+  _rawResponse = _response.toString();
+  _isRespReady = true;
 }

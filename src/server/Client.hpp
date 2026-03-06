@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "CgiHandler.hpp"
 #include "ConfigStructs.hpp"
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
@@ -28,6 +29,13 @@ public:
   bool isRequestComplete() const;
   bool isResponseReady() const;
   std::time_t getLastActivity() const;
+  // CGI
+  int getCgiFd() const { return _cgiFd; }
+  pid_t getCgiPid() const { return _cgiPid; }
+  void appendCgiOutput(const char *buf, ssize_t bytes) {
+    _cgiOutput.append(buf, bytes);
+  }
+  void parseCgiResponse();
 
 private:
   struct Route {
@@ -49,6 +57,11 @@ private:
   bool _isRespReady;
 
   std::time_t _lastActivity;
+  // CGI
+  int _cgiFd;
+  pid_t _cgiPid;
+  std::string _cgiOutput;
+  void _handleCgi(const Route &route);
 
   void _handleGet(const Route &route);
   void _handlePost(const Route &route);
@@ -61,9 +74,6 @@ private:
   std::string _getUploadDirectory(const Route &route) const;
   void _saveFile(const std::string &save_path, const std::string &content,
                  const std::string &filename);
-
-  // CGI
-  void _handleCgi(const Route &route);
 
   // In ClientUtils.cpp
   int _validateRequest() const;
