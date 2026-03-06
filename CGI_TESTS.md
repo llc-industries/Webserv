@@ -33,8 +33,8 @@
   - Le serveur renvoie une page (même vide ou idéaleement une erreur `502/500`) et continue de fonctionner.
 
 ## 5. Le "Goulag" (Boucle Infinie & Timeout)
-* **Fichiers :** `golag.py` ou `infinite.php`
-* **Commande :** `curl -i http://localhost:8080/golag.py`
+* **Fichiers :** `infinite.py` ou `infinite.php`
+* **Commande :** `curl -i http://localhost:8080/infinite.py`
 * **Comportement Attendu :**
   - Le processus enfant CGI va s'enfermer dans le Goulag (boucle infinie, 100% CPU).
   - Le serveur reste réactif pour les autres clients.
