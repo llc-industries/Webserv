@@ -29,8 +29,9 @@ void ConfigPrint::_printServerBlock(const ServerConfig &sc) const {
   LOG_CONFIG("Ports ---------> " << ss.str());
   ss.str(std::string(""));
 
-  if (sc.serverName.empty() == false)
+  if (sc.serverName.empty() == false) {
     LOG_CONFIG("Server name ---> " << sc.serverName);
+  }
 
   LOG_CONFIG("Root ----------> " << sc.root);
 
@@ -53,8 +54,9 @@ void ConfigPrint::_printServerBlock(const ServerConfig &sc) const {
 void ConfigPrint::_printLocationBlock(const Location &loc) const {
   std::stringstream ss;
 
-  if (loc.root.empty() == false)
+  if (loc.root.empty() == false) {
     LOG_CONFIG("Root --------> " << loc.root);
+  }
 
   if (loc.index.empty() == false) {
     for (it_str it = loc.index.begin(); it != loc.index.end(); ++it)
@@ -71,11 +73,14 @@ void ConfigPrint::_printLocationBlock(const Location &loc) const {
     ss.str(std::string(""));
   }
 
-  if (loc.ret.first != -1)
+  if (loc.ret.first != -1) {
     LOG_CONFIG("Return ------> " << loc.ret.first << " " << loc.ret.second);
-  if (loc.cgiPath.empty() == false)
+  }
+  if (loc.cgiPath.empty() == false) {
     LOG_CONFIG("CGI Path ----> " << loc.cgiPath);
-  if (loc.uploadPath.empty() == false)
+  }
+  if (loc.uploadPath.empty() == false) {
     LOG_CONFIG("Upload Path -> " << loc.uploadPath);
+  }
   LOG_CONFIG("Autoindex ---> " << (loc.autoindex == 0 ? "false" : "true"));
 }

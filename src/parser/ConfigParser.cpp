@@ -8,11 +8,9 @@ ConfigParser::ConfigParser(const std::string &configPath)
 
   ConfigTokenizer(configPath, this->_tokens);
 
-  LOG_INFO("Starting parser...");
   this->_initFuncTables();
   this->_parse();
   this->_checkDefaults();
-  LOG_INFO("Parser done");
 }
 
 /* ----- TOKEN HELPERS ----- */

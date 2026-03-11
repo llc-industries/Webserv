@@ -12,11 +12,9 @@ std::string findConfigFile(int argc, char **argv) {
   std::string configPath;
 
   if (argc < 2) {
-    LOG_WARN("No arguments provided, using default configuration file");
     LOG_INFO("Using " DEFAULT_CONF " as config file");
     configPath = DEFAULT_CONF;
   } else if (argc > 2) {
-    LOG_WARN("Too many arguments provided");
     LOG_INFO("Using \"" << argv[1] << "\" as config file");
     configPath = argv[1];
   } else {

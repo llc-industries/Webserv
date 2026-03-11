@@ -79,13 +79,13 @@ void Server::setupEpoll() {
     if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, it->first, &ev) != 0)
       throw std::runtime_error("epoll_ctl(): " + std::string(strerror(errno)));
   }
-  LOG_INFO("epoll instance is ready");
 }
 
 void Server::run() {
   if (signal(SIGINT, sigintHandler) == SIG_ERR)
     throw std::runtime_error("Couldn't setup SIGINT (CTRL+C)");
-  LOG_INFO("---------- Server is running ! ----------");
+  LOG_INFO("---------- Server is running (" << _socketMap.size()
+                                            << " socket) ----------");
 
   while (Server::stopSignal == false) {
     int nfds = epoll_wait(_epollFd, _events, MAX_EVENTS, EPOLL_TIMEOUT);
@@ -101,7 +101,7 @@ void Server::run() {
       if (it != _socketMap.end()) { // New client
         _acceptConnection(currentFd, it->second);
       } else if (it_cgi != _cgiMap.end()) {
-        handleCgiRead(currentFd);
+        _handleCgiRead(currentFd);
       } else { // Existing client
         if (eventMask & (EPOLLERR | EPOLLHUP))
           _closeClient(currentFd);
@@ -146,14 +146,14 @@ void Server::_acceptConnection(int fd, const ServerConfig *config) {
   _clientMap.insert(std::make_pair(client_fd, Client(config)));
 
   // TODO: Format IP address clean -> byte.byte.byte.byte:port
-  //LOG_ACCEPT(client_fd, "New connection");
+  LOG_ACCEPT(client_fd, "New connection");
 }
 
 void Server::_closeClient(int client_fd) {
   epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL);
   close(client_fd);
   _clientMap.erase(client_fd);
-  //LOG_CLOSE(client_fd, "Closed client connection");
+  LOG_CLOSE(client_fd, "Closed client connection");
 }
 
 void Server::_handleClientRead(int fd) {
@@ -167,7 +167,7 @@ void Server::_handleClientRead(int fd) {
     _closeClient(fd);
     return;
   }
-  //LOG_RECV(fd, "recv() received " << retval << " bytes");
+  LOG_RECV(fd, "recv() received " << retval << " bytes");
   Client &client = _clientMap.find(fd)->second;
   client.swallow(buf, retval);
   if (client.isRequestComplete() == true) {
@@ -181,10 +181,10 @@ void Server::_handleClientRead(int fd) {
 
 void Server::_handleClientWrite(int fd) {
   Client &client = _clientMap.find(fd)->second;
-  if (client.isResponseReady() == false){
+  if (client.isResponseReady() == false) {
     client.buildResponse();
 
-    if (client.getCgiFd() != -1){
+    if (client.getCgiPid() != -1) {
       _registerCgi(fd);
       return;
     }
@@ -199,7 +199,7 @@ void Server::_handleClientWrite(int fd) {
       _closeClient(fd);
       return;
     } else {
-      //LOG_SEND(fd, "send() sent " << retval << " bytes");
+      LOG_SEND(fd, "send() sent " << retval << " bytes");
       client.addBytesSent(retval);
     }
 
@@ -216,7 +216,7 @@ void Server::_handleTimeouts() {
     if (now - it->second.getLastActivity() >= CLIENT_TIMEOUT) {
       int fdSave = it->first;
       ++it;
-      //LOG_CLOSE(fdSave, "Client has timed out");
+      LOG_CLOSE(fdSave, "Client has timed out");
       _closeClient(fdSave);
     } else
       ++it;
@@ -236,7 +236,7 @@ void Server::_registerCgi(int client_fd) {
   Client &client = _clientMap.find(client_fd)->second;
   int cgiFd = client.getCgiFd();
 
-  if (cgiFd != -1){
+  if (cgiFd != -1) {
     _cgiMap[cgiFd] = client_fd;
 
     epoll_event ev;
@@ -251,16 +251,16 @@ void Server::_registerCgi(int client_fd) {
   }
 }
 
-void Server::handleCgiRead(int cgi_fd){
+void Server::_handleCgiRead(int cgi_fd) {
   int client_fd = _cgiMap[cgi_fd];
   Client &client = _clientMap.find(client_fd)->second;
 
   char buf[4096];
   ssize_t bytes = read(cgi_fd, buf, sizeof(buf));
 
-  if (bytes > 0){
+  if (bytes > 0) {
     client.appendCgiOutput(buf, bytes);
-  } else if (bytes == 0){
+  } else if (bytes == 0) {
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgi_fd, NULL);
     close(cgi_fd);
     _cgiMap.erase(cgi_fd);
@@ -278,5 +278,4 @@ void Server::handleCgiRead(int cgi_fd){
     LOG_ERR("CGI read error");
     _closeClient(client_fd);
   }
-
 }

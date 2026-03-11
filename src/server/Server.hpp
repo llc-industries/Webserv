@@ -18,6 +18,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define MAX_EVENTS 64
@@ -42,6 +43,7 @@ private:
 
   typedef std::map<int, const ServerConfig *>::iterator it_sock;
   typedef std::map<int, Client>::iterator it_client;
+  typedef std::map<int, int>::iterator it_cgi;
 
   void _acceptConnection(int fd, const ServerConfig *context);
   void _closeClient(int client_fd);
@@ -61,10 +63,12 @@ private:
 
   // Current clients
   std::map<int, Client> _clientMap;
-  //CGI
+
+  // CGI
   std::map<int, int> _cgiMap;
   void _registerCgi(int client_fd);
-  void handleCgiRead(int cgi_fd);
+  void _handleCgiRead(int cgi_fd);
+  void _handleCgiWrite(int cgi_fd);
 };
 
 #endif /* SERVER_HPP */

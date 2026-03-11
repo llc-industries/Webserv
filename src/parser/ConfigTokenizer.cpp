@@ -6,15 +6,12 @@
 ConfigTokenizer::ConfigTokenizer(const std::string &configPath,
                                  std::vector<Token> &tokens)
     : _tokens(tokens) {
-  LOG_INFO("Loading " << configPath << "...");
   this->_loadFile(configPath);
-  LOG_INFO("Config file loaded into memory");
 
-  LOG_INFO("Starting tokenization...");
   this->_tokenize();
   if (tokens.empty())
     throw std::runtime_error(configPath + " is empty");
-  LOG_INFO("Tokenisation done. " << _tokens.size() << " tokens created");
+  // LOG_INFO(_tokens.size() << " tokens created");
 }
 
 /* Methods */
