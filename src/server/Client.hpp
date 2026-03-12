@@ -38,6 +38,11 @@ public:
   }
   void parseCgiResponse();
   void cgiTimeoutClean();
+  void closeCgiFd() {
+    if (_cgiFd != -1)
+      close(_cgiFd);
+    _cgiFd = -1;
+  }
 
 private:
   struct Route {

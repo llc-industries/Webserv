@@ -160,7 +160,7 @@ void Server::_closeClient(int client_fd) {
   int cgiFd = client.getCgiFd();
   if (cgiFd != -1) {
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFd, NULL);
-    close(cgiFd);
+    client.closeCgiFd();
     _cgiMap.erase(cgiFd);
   }
 
@@ -172,7 +172,7 @@ void Server::_closeClient(int client_fd) {
 
 void Server::_handleClientRead(int fd) {
   char buf[4096];
-  ssize_t retval = recv(fd, buf, sizeof(buf), 0); // J'ai remove le -1 du sizeof
+  ssize_t retval = recv(fd, buf, sizeof(buf), 0);
   if (retval == -1) {
     LOG_ERR("recv(): " + std::string(strerror(errno)));
     _closeClient(fd);
@@ -301,7 +301,8 @@ void Server::_handleCgiRead(int cgi_fd) {
     client.appendCgiOutput(buf, bytes);
   } else if (bytes == 0) {
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgi_fd, NULL);
-    close(cgi_fd);
+    client.closeCgiFd();
+
     _cgiMap.erase(cgi_fd);
 
     waitpid(client.getCgiPid(), NULL, WNOHANG);
