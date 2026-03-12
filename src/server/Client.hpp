@@ -29,6 +29,7 @@ public:
   bool isRequestComplete() const;
   bool isResponseReady() const;
   std::time_t getLastActivity() const;
+
   // CGI
   int getCgiFd() const { return _cgiFd; }
   pid_t getCgiPid() const { return _cgiPid; }
@@ -36,6 +37,7 @@ public:
     _cgiOutput.append(buf, bytes);
   }
   void parseCgiResponse();
+  void cgiTimeoutClean();
 
 private:
   struct Route {
@@ -57,6 +59,7 @@ private:
   bool _isRespReady;
 
   std::time_t _lastActivity;
+
   // CGI
   int _cgiFd;
   pid_t _cgiPid;

@@ -45,6 +45,8 @@ std::string HttpResponse::getReasonPhrase(int code) const {
     return "Internal Server Error";
   case 501:
     return "Not Implemented";
+  case 502:
+    return "Gateway Timeout";
   default:
     return "Unknown Status";
   }

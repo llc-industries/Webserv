@@ -2,7 +2,8 @@
 
 Client::Client(const ServerConfig *context)
     : _context(context), _isReqComplete(false), _bytesSent(0),
-      _isRespReady(false), _lastActivity(std::time(NULL)), _cgiFd(-1) {}
+      _isRespReady(false), _lastActivity(std::time(NULL)), _cgiFd(-1),
+      _cgiPid(-1) {}
 
 Client::~Client() {}
 
@@ -20,7 +21,7 @@ void Client::buildResponse() {
     return;
   }
 
-  if (route.loc != NULL && !route.loc->cgiPath.empty()){
+  if (route.loc != NULL && !route.loc->cgiPath.empty()) {
     _handleCgi(route);
     return;
   }
@@ -170,8 +171,7 @@ void Client::_handleDelete(const Route &route) {
 }
 
 void Client::_handleCgi(const Route &route) {
-  CgiHandler cgi(_request, route.full_path,
-                 route.loc->cgiPath);
+  CgiHandler cgi(_request, route.full_path, route.loc->cgiPath);
 
   _cgiFd = cgi.executeCgi(_cgiPid);
   if (_cgiFd == -1) {
@@ -197,4 +197,11 @@ void Client::parseCgiResponse() {
 
   _rawResponse = _response.toString();
   _isRespReady = true;
+}
+
+void Client::cgiTimeoutClean() {
+  _setError(502);
+  _cgiFd = -1;
+  _cgiPid = -1;
+  _lastActivity = std::time(NULL);
 }

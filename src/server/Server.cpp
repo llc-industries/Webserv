@@ -150,7 +150,21 @@ void Server::_acceptConnection(int fd, const ServerConfig *config) {
 }
 
 void Server::_closeClient(int client_fd) {
-  epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL);
+  Client &client = _clientMap.find(client_fd)->second;
+
+  if (client.getCgiPid() != -1) { // Clean CGI
+    kill(client.getCgiPid(), SIGKILL);
+    waitpid(client.getCgiPid(), NULL, WNOHANG);
+  }
+
+  int cgiFd = client.getCgiFd();
+  if (cgiFd != -1) {
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFd, NULL);
+    close(cgiFd);
+    _cgiMap.erase(cgiFd);
+  }
+
+  epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL); // Clean _clientMap
   close(client_fd);
   _clientMap.erase(client_fd);
   LOG_CLOSE(client_fd, "Closed client connection");
@@ -190,7 +204,7 @@ void Server::_handleClientWrite(int fd) {
     }
   }
   if (client.isResponseReady() == true) {
-    ssize_t retval;
+    ssize_t retval = 0;
     size_t rest = client.getResponseLength() - client.getBytesSent();
 
     retval = send(fd, client.getResponse() + client.getBytesSent(), rest, 0);
@@ -210,14 +224,39 @@ void Server::_handleClientWrite(int fd) {
 
 void Server::_handleTimeouts() {
   std::time_t now = std::time(NULL);
-
   it_client it = _clientMap.begin();
+
   while (it != _clientMap.end()) {
-    if (now - it->second.getLastActivity() >= CLIENT_TIMEOUT) {
+    Client &client = it->second;
+    pid_t pid = client.getCgiPid();
+    std::time_t lastAct = client.getLastActivity();
+
+    if (now - lastAct >= CLIENT_TIMEOUT && pid == -1) { // Timeout classique
       int fdSave = it->first;
       ++it;
       LOG_CLOSE(fdSave, "Client has timed out");
       _closeClient(fdSave);
+    } else if (now - lastAct >= CLIENT_TIMEOUT && pid != -1) { // Timeout de cgi
+      // Kill le CGI et prépare l'envoi d'un 502 du client
+      kill(pid, SIGKILL);
+      waitpid(pid, NULL, WNOHANG);
+
+      int cgiFd = client.getCgiFd();
+      if (cgiFd != -1) {
+        epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFd, NULL);
+        close(cgiFd);
+        _cgiMap.erase(cgiFd);
+      }
+
+      client.cgiTimeoutClean();
+
+      epoll_event ev;
+      std::memset(&ev, 0, sizeof(ev));
+      ev.events = EPOLLOUT;
+      ev.data.fd = it->first;
+      epoll_ctl(_epollFd, EPOLL_CTL_MOD, it->first, &ev);
+
+      ++it;
     } else
       ++it;
   }
