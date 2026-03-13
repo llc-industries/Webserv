@@ -61,7 +61,6 @@ void Server::createSockets() {
       freeaddrinfo(res);
     }
   }
-  LOG_INFO(_socketMap.size() << " sockets created");
 }
 // clang-format on
 
@@ -157,10 +156,10 @@ void Server::_closeClient(int client_fd) {
     waitpid(client.getCgiPid(), NULL, WNOHANG);
   }
 
-  int cgiFd = client.getCgiFd();
+  int cgiFd = client.getCgiFdOut();
   if (cgiFd != -1) {
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFd, NULL);
-    client.closeCgiFd();
+    client.closeCgiFdOut();
     _cgiMap.erase(cgiFd);
   }
 
@@ -241,7 +240,7 @@ void Server::_handleTimeouts() {
       kill(pid, SIGKILL);
       waitpid(pid, NULL, WNOHANG);
 
-      int cgiFd = client.getCgiFd();
+      int cgiFd = client.getCgiFdOut();
       if (cgiFd != -1) {
         epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFd, NULL);
         close(cgiFd);
@@ -273,7 +272,7 @@ void Server::_socketFail(const std::string &funcName, struct addrinfo *res,
 
 void Server::_registerCgi(int client_fd) {
   Client &client = _clientMap.find(client_fd)->second;
-  int cgiFd = client.getCgiFd();
+  int cgiFd = client.getCgiFdOut();
 
   if (cgiFd != -1) {
     _cgiMap[cgiFd] = client_fd;
@@ -301,11 +300,12 @@ void Server::_handleCgiRead(int cgi_fd) {
     client.appendCgiOutput(buf, bytes);
   } else if (bytes == 0) {
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgi_fd, NULL);
-    client.closeCgiFd();
+    client.closeCgiFdOut();
 
     _cgiMap.erase(cgi_fd);
 
     waitpid(client.getCgiPid(), NULL, WNOHANG);
+    client.resetCgi();
 
     client.parseCgiResponse();
 

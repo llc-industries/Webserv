@@ -31,17 +31,24 @@ public:
   std::time_t getLastActivity() const;
 
   // CGI
-  int getCgiFd() const { return _cgiFd; }
+  int getCgiFdOut() const { return _cgiFdOut; }
+  int getCgiFdIn() const { return _cgiFdIn; }
   pid_t getCgiPid() const { return _cgiPid; }
   void appendCgiOutput(const char *buf, ssize_t bytes) {
     _cgiOutput.append(buf, bytes);
   }
   void parseCgiResponse();
   void cgiTimeoutClean();
-  void closeCgiFd() {
-    if (_cgiFd != -1)
-      close(_cgiFd);
-    _cgiFd = -1;
+  void closeCgiFdOut() {
+    if (_cgiFdOut != -1)
+      close(_cgiFdOut);
+    _cgiFdOut = -1;
+  }
+  void resetCgi() {
+    _cgiFdIn = -1;
+    _cgiFdOut = -1;
+    _cgiPid = -1;
+    _cgiBytesWritten = 0;
   }
 
 private:
@@ -66,7 +73,9 @@ private:
   std::time_t _lastActivity;
 
   // CGI
-  int _cgiFd;
+  int _cgiFdOut;
+  int _cgiFdIn;
+  size_t _cgiBytesWritten;
   pid_t _cgiPid;
   std::string _cgiOutput;
   void _handleCgi(const Route &route);
