@@ -13,7 +13,7 @@ public:
              const std::string &cgiBinPath);
   ~CgiHandler();
 
-  int executeCgi(pid_t &out_pid); // execute le cgi
+  int executeCgi(pid_t &out_pid, int &out_fd, int &in_fd); // execute le cgi
 private:
   const HttpRequest &_request;
   std::string _scriptPath;

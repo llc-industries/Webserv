@@ -173,11 +173,8 @@ void Client::_handleDelete(const Route &route) {
 void Client::_handleCgi(const Route &route) {
   CgiHandler cgi(_request, route.full_path, route.loc->cgiPath);
 
-  _cgiFdOut = cgi.executeCgi(_cgiPid);
-  if (_cgiFdOut == -1) {
+  if (cgi.executeCgi(_cgiPid, _cgiFdOut, _cgiFdIn) == -1)
     _setError(500);
-    return;
-  }
 }
 
 void Client::parseCgiResponse() {
