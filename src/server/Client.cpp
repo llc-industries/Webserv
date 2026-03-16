@@ -178,6 +178,11 @@ void Client::_handleCgi(const Route &route) {
 }
 
 void Client::parseCgiResponse() {
+  if (_cgiOutput.empty()) {
+    _setError(500);
+    return;
+  }
+
   size_t header_end = _cgiOutput.find("\r\n\r\n");
   if (header_end == std::string::npos)
     header_end = _cgiOutput.find("\n\n");

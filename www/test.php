@@ -1,6 +1,6 @@
 <?php
 echo "<!DOCTYPE html><html><head><title>Test PHP CGI</title></head><body>";
-echo "<h1>🚀 Test CGI PHP Réussi !</h1>";
+echo "<h1>Test CGI PHP Réussi !</h1>";
 
 echo "<h3>Informations sur la Requête :</h3>";
 echo "<ul>";

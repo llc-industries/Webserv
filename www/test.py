@@ -6,7 +6,7 @@ import sys
 print("Content-Type: text/html\r\n\r\n", end="")
 
 print("<html><body>")
-print("<h1>🐍 Test CGI Python Réussi !</h1>")
+print("<h1>Test CGI Python Réussi !</h1>")
 
 method = os.environ.get("REQUEST_METHOD", "INCONNU")
 print(f"<p><strong>Méthode :</strong> {method}</p>")
