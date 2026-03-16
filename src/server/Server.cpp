@@ -99,8 +99,18 @@ void Server::run() {
 
       if (it != _socketMap.end()) { // New client
         _acceptConnection(currentFd, it->second);
-      } else if (it_cgi != _cgiMap.end()) {
-        _handleCgiRead(currentFd);
+      } else if (it_cgi != _cgiMap.end()) { // Handle cgi pipes
+        int client_fd = it_cgi->second;
+        Client &client = _clientMap.find(client_fd)->second;
+
+        if (currentFd == client.getCgiFdOut()) {
+          if (eventMask & (EPOLLIN | EPOLLHUP | EPOLLERR))
+            _handleCgiRead(currentFd);
+        }
+        if (currentFd == client.getCgiFdIn()) {
+          if (eventMask & (EPOLLOUT | EPOLLHUP | EPOLLERR))
+            _handleCgiWrite(currentFd);
+        }
       } else { // Existing client
         if (eventMask & (EPOLLERR | EPOLLHUP))
           _closeClient(currentFd);
@@ -156,11 +166,18 @@ void Server::_closeClient(int client_fd) {
     waitpid(client.getCgiPid(), NULL, WNOHANG);
   }
 
-  int cgiFd = client.getCgiFdOut();
-  if (cgiFd != -1) {
-    epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFd, NULL);
+  int cgiFdOut = client.getCgiFdOut();
+  if (cgiFdOut != -1) {
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFdOut, NULL);
     client.closeCgiFdOut();
-    _cgiMap.erase(cgiFd);
+    _cgiMap.erase(cgiFdOut);
+  }
+
+  int cgiFdIn = client.getCgiFdIn();
+  if (cgiFdIn != -1) {
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFdIn, NULL);
+    client.closeCgiFdIn();
+    _cgiMap.erase(cgiFdIn);
   }
 
   epoll_ctl(_epollFd, EPOLL_CTL_DEL, client_fd, NULL); // Clean _clientMap
@@ -240,11 +257,11 @@ void Server::_handleTimeouts() {
       kill(pid, SIGKILL);
       waitpid(pid, NULL, WNOHANG);
 
-      int cgiFd = client.getCgiFdOut();
-      if (cgiFd != -1) {
-        epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFd, NULL);
-        close(cgiFd);
-        _cgiMap.erase(cgiFd);
+      int cgiFdOut = client.getCgiFdOut();
+      if (cgiFdOut != -1) {
+        epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgiFdOut, NULL);
+        close(cgiFdOut);
+        _cgiMap.erase(cgiFdOut);
       }
 
       client.cgiTimeoutClean();
@@ -272,26 +289,40 @@ void Server::_socketFail(const std::string &funcName, struct addrinfo *res,
 
 void Server::_registerCgi(int client_fd) {
   Client &client = _clientMap.find(client_fd)->second;
-  int cgiFd = client.getCgiFdOut();
+  int cgiFdOut = client.getCgiFdOut();
+  int cgiFdIn = client.getCgiFdIn();
 
-  if (cgiFd != -1) {
-    _cgiMap[cgiFd] = client_fd;
+  if (cgiFdOut != -1) {
+    _cgiMap[cgiFdOut] = client_fd;
 
     epoll_event ev;
     std::memset(&ev, 0, sizeof(ev));
     ev.events = EPOLLIN;
-    ev.data.fd = cgiFd;
-    epoll_ctl(_epollFd, EPOLL_CTL_ADD, cgiFd, &ev);
-
-    ev.events = 0;
-    ev.data.fd = client_fd;
-    epoll_ctl(_epollFd, EPOLL_CTL_MOD, client_fd, &ev);
+    ev.data.fd = cgiFdOut;
+    epoll_ctl(_epollFd, EPOLL_CTL_ADD, cgiFdOut, &ev);
   }
+
+  if (cgiFdIn != -1) {
+    _cgiMap[cgiFdIn] = client_fd;
+
+    epoll_event ev;
+    std::memset(&ev, 0, sizeof(ev));
+    ev.events = EPOLLOUT;
+    ev.data.fd = cgiFdIn;
+    epoll_ctl(_epollFd, EPOLL_CTL_ADD, cgiFdIn, &ev);
+  }
+
+  epoll_event ev;
+  std::memset(&ev, 0, sizeof(ev));
+  ev.events = 0;
+  ev.data.fd = client_fd;
+  epoll_ctl(_epollFd, EPOLL_CTL_MOD, client_fd, &ev);
 }
 
 void Server::_handleCgiRead(int cgi_fd) {
   int client_fd = _cgiMap[cgi_fd];
   Client &client = _clientMap.find(client_fd)->second;
+  client.updateActivity();
 
   char buf[4096];
   ssize_t bytes = read(cgi_fd, buf, sizeof(buf));
@@ -317,5 +348,32 @@ void Server::_handleCgiRead(int cgi_fd) {
   } else {
     LOG_ERR("CGI read error");
     _closeClient(client_fd);
+  }
+}
+
+void Server::_handleCgiWrite(int cgi_fd) {
+  int client_fd = _cgiMap[cgi_fd];
+  Client &client = _clientMap.find(client_fd)->second;
+  client.updateActivity();
+  const std::string &body = client.getRequestBody();
+
+  size_t rest = body.length() - client.getCgiBytesWritten();
+  if (rest > 0) {
+    ssize_t retval =
+        write(cgi_fd, body.c_str() + client.getCgiBytesWritten(), rest);
+    if (retval > 0) {
+      client.addCgiBytesWritten(retval);
+      rest -= retval;
+    } else if (retval == -1) {
+      LOG_ERR("Cgi write error");
+      _closeClient(client_fd);
+      return;
+    }
+  }
+
+  if (rest == 0) {
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgi_fd, NULL);
+    _cgiMap.erase(cgi_fd);
+    client.closeCgiFdIn();
   }
 }

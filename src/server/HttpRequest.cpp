@@ -71,7 +71,7 @@ std::string HttpRequest::getMethod() const { return _method; }
 
 std::string HttpRequest::getPath() const { return _path; }
 
-std::string HttpRequest::getBody() const { return _body; }
+const std::string &HttpRequest::getBody() const { return _body; }
 
 std::string HttpRequest::getHeader(const std::string &key) const {
   std::map<std::string, std::string>::const_iterator it = _headers.find(key);

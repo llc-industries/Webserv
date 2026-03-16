@@ -3,7 +3,7 @@
 Client::Client(const ServerConfig *context)
     : _context(context), _isReqComplete(false), _bytesSent(0),
       _isRespReady(false), _lastActivity(std::time(NULL)), _cgiFdOut(-1),
-      _cgiPid(-1) {}
+      _cgiFdIn(-1), _cgiBytesWritten(0), _cgiPid(-1) {}
 
 Client::~Client() {}
 

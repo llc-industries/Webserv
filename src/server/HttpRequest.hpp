@@ -24,7 +24,7 @@ public:
   std::string getMethod() const;
   std::string getPath() const;
   std::string getHeader(const std::string &key) const;
-  std::string getBody() const;
+  const std::string &getBody() const;
 
 private:
   std::string _raw_data;

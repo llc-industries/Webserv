@@ -29,27 +29,21 @@ public:
   bool isRequestComplete() const;
   bool isResponseReady() const;
   std::time_t getLastActivity() const;
+  void updateActivity();
 
   // CGI
-  int getCgiFdOut() const { return _cgiFdOut; }
-  int getCgiFdIn() const { return _cgiFdIn; }
-  pid_t getCgiPid() const { return _cgiPid; }
-  void appendCgiOutput(const char *buf, ssize_t bytes) {
-    _cgiOutput.append(buf, bytes);
-  }
+  int getCgiFdOut() const;
+  int getCgiFdIn() const;
+  const std::string &getRequestBody();
+  size_t getCgiBytesWritten() const;
+  void addCgiBytesWritten(size_t bytes);
+  pid_t getCgiPid() const;
+  void appendCgiOutput(const char *buf, ssize_t bytes);
   void parseCgiResponse();
   void cgiTimeoutClean();
-  void closeCgiFdOut() {
-    if (_cgiFdOut != -1)
-      close(_cgiFdOut);
-    _cgiFdOut = -1;
-  }
-  void resetCgi() {
-    _cgiFdIn = -1;
-    _cgiFdOut = -1;
-    _cgiPid = -1;
-    _cgiBytesWritten = 0;
-  }
+  void closeCgiFdOut();
+  void closeCgiFdIn();
+  void resetCgi();
 
 private:
   struct Route {

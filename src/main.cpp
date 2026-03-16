@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
 
   try {
     Server server(config);
+    signal(SIGPIPE, SIG_IGN);
     server.createSockets();
     server.setupEpoll();
     server.run();

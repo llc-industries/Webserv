@@ -40,27 +40,27 @@ int Client::_validateRequest() const {
 Client::Route Client::_resolveRoute() const {
   Route ret;
   size_t maxLen = 0;
-  //Extraction du path (sans ?)
+  // Extraction du path (sans ?)
   std::string full_req_path = _request.getPath();
   std::string path = full_req_path;
 
   size_t query_pos = full_req_path.find('?');
-  if (query_pos != std::string::npos){
+  if (query_pos != std::string::npos) {
     path = full_req_path.substr(0, query_pos);
   }
 
   // Find appropriate location
   for (size_t i = 0; i < _context->locations.size(); i++) {
     const std::string &locPath = _context->locations[i].path;
-    if (locPath.length() > 1 && locPath[0] == '*'){
+    if (locPath.length() > 1 && locPath[0] == '*') {
       std::string ext = locPath.substr(1);
 
-      if (path.length() >= ext.length() && path.compare(path.length() - ext.length(), ext.length(), ext) == 0){
+      if (path.length() >= ext.length() &&
+          path.compare(path.length() - ext.length(), ext.length(), ext) == 0) {
         ret.loc = &(_context->locations[i]);
         break;
-      } 
-    }
-    else if (path.find(locPath) == 0 && locPath.length() > maxLen) {
+      }
+    } else if (path.find(locPath) == 0 && locPath.length() > maxLen) {
       ret.loc = &(_context->locations[i]);
       maxLen = locPath.length();
     }
@@ -191,4 +191,33 @@ bool Client::_multiPart(const std::string &body, const std::string &boundary,
   content_end -= 2; // enlève le délimiteur de fin
   out_content = body.substr(content_start, content_end - content_start);
   return true;
+}
+
+void Client::updateActivity() { _lastActivity = std::time(NULL); }
+
+int Client::getCgiFdOut() const { return _cgiFdOut; }
+int Client::getCgiFdIn() const { return _cgiFdIn; }
+const std::string &Client::getRequestBody() { return _request.getBody(); }
+size_t Client::getCgiBytesWritten() const { return _cgiBytesWritten; }
+void Client::addCgiBytesWritten(size_t bytes) { _cgiBytesWritten += bytes; }
+pid_t Client::getCgiPid() const { return _cgiPid; }
+void Client::appendCgiOutput(const char *buf, ssize_t bytes) {
+  _cgiOutput.append(buf, bytes);
+}
+
+void Client::closeCgiFdOut() {
+  if (_cgiFdOut != -1)
+    close(_cgiFdOut);
+  _cgiFdOut = -1;
+}
+void Client::closeCgiFdIn() {
+  if (_cgiFdIn != -1)
+    close(_cgiFdIn);
+  _cgiFdIn = -1;
+}
+void Client::resetCgi() {
+  _cgiFdIn = -1;
+  _cgiFdOut = -1;
+  _cgiPid = -1;
+  _cgiBytesWritten = 0;
 }

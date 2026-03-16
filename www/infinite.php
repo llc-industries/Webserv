@@ -1,5 +1,5 @@
 <?php
-// On n'envoie jamais de réponse, on boucle à l'infini
+// Infinite loop
 while (true) {
     $a = 1 + 1;
 }
