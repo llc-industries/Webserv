@@ -94,14 +94,20 @@ bool Client::_handleDirectory(std::string &target_path, const Route &route) {
 }
 
 void Client::_handlePost(const Route &route) {
+  std::string upload_dir = _getUploadDirectory(route);
+
+  if (upload_dir.empty()) {
+    _setError(403);
+    return;
+  }
+
   std::string body = _request.getBody();
-  std::string filename = "uploaded_file.txt";
+  std::stringstream ss;
+  ss << "upload_" << std::time(NULL) << "_" << std::rand() % 1000 << ".bin";
+  std::string filename = ss.str();
 
   _parseMultipart(filename, body);
-
-  std::string uploaded_dir = _getUploadDirectory(route);
-  std::string path = uploaded_dir + filename;
-
+  std::string path = upload_dir + filename;
   _saveFile(path, body, filename);
 }
 
@@ -127,16 +133,19 @@ void Client::_parseMultipart(std::string &filename, std::string &content) {
 }
 
 std::string Client::_getUploadDirectory(const Route &route) const {
-  std::string upload_dir = "";
+  if (route.loc != NULL && route.loc->uploadPath.empty() == false) {
+    std::string upload_dir = route.root;
 
-  if (route.loc != NULL && route.loc->uploadPath.empty() == false)
-    upload_dir = route.loc->uploadPath;
-  else
-    upload_dir = route.root + "/upload";
+    if (upload_dir.empty() == false &&
+        upload_dir[upload_dir.length() - 1] != '/')
+      upload_dir += "/";
 
-  if (upload_dir[upload_dir.length() - 1] != '/')
-    upload_dir += "/";
-  return upload_dir;
+    upload_dir += route.loc->uploadPath;
+    if (upload_dir[upload_dir.length() - 1] != '/')
+      upload_dir += '/';
+    return upload_dir;
+  }
+  return "";
 }
 
 void Client::_saveFile(const std::string &save_path, const std::string &content,
