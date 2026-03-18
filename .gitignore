@@ -1,4 +1,5 @@
 .vscode
 build/
 webserv
+chunk_1go.bin
 vgcore*
