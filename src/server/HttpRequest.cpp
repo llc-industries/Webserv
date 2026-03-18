@@ -1,7 +1,8 @@
 #include "HttpRequest.hpp"
 
 HttpRequest::HttpRequest()
-    : _headers_parsed(false), _is_complete(false), _content_length(0) {}
+    : _headers_parsed(false), _is_complete(false), _is_chunked(false),
+      _body_pos(0), _content_length(0) {}
 
 HttpRequest::~HttpRequest() {}
 
@@ -26,10 +27,13 @@ void HttpRequest::swallow(const char *buffer, size_t bytes) {
           parseHeaderLine(line);
       }
       _headers_parsed = true;
+      _body_pos = end_of_headers + 4;
     }
   }
   if (_headers_parsed) {
-    if (_method == "POST") {
+    if (_is_chunked == true) {
+      parseChunkedBody();
+    } else if (_method == "POST") {
       size_t body_start = _raw_data.find("\r\n\r\n") + 4;
       size_t current_body_size = _raw_data.size() - body_start;
       if (current_body_size >= _content_length) {
@@ -61,6 +65,38 @@ void HttpRequest::parseHeaderLine(const std::string &line) {
     _headers[key] = value;
     if (key == "Content-Length") {
       _content_length = std::atoi(value.c_str());
+    } else if (key == "Transfer-Encoding" &&
+               value.find("chunked") != std::string::npos) {
+      _is_chunked = true;
+    }
+  }
+}
+
+void HttpRequest::parseChunkedBody() {
+  while (42) {
+    size_t crlf_pos = _raw_data.find("\r\n", _body_pos);
+    if (crlf_pos == std::string::npos) {
+      break;
+    }
+
+    std::string hex_str = _raw_data.substr(_body_pos, crlf_pos - _body_pos);
+    size_t chunk_size = 0;
+    std::stringstream ss;
+    ss << std::hex << hex_str;
+    ss >> chunk_size;
+
+    if (chunk_size == 0) {
+      if (_raw_data.size() >= crlf_pos + 4)
+        _is_complete = true;
+      break;
+    }
+
+    size_t next_chunk_start = crlf_pos + chunk_size + 4;
+    if (_raw_data.size() >= next_chunk_start) {
+      _body.append(_raw_data, crlf_pos + 2, chunk_size);
+      _body_pos = next_chunk_start;
+    } else {
+      break;
     }
   }
 }

@@ -37,10 +37,13 @@ private:
   // etat du parsing
   bool _headers_parsed;
   bool _is_complete;
+  bool _is_chunked;
+  size_t _body_pos;
   size_t _content_length;
   // ft de parsing de requete
   void parseFirstLine(const std::string &line);
   void parseHeaderLine(const std::string &line);
+  void parseChunkedBody();
 };
 
 #endif /* HTTPREQUEST_H */

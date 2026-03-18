@@ -3,3 +3,4 @@ build/
 webserv
 chunk_1go.bin
 vgcore*
+www/upload/*
