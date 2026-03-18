@@ -16,6 +16,11 @@ void Client::buildResponse() {
 
   Route route = _resolveRoute();
 
+  if (route.loc != NULL && route.loc->ret.first != -1) {
+    _handleRedirection(route);
+    return;
+  }
+
   if (_isMethodAllowed(route) == false) {
     _setError(405);
     return;

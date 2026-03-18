@@ -6,6 +6,16 @@ void Client::swallow(const char *buf, ssize_t bytesRead) {
   _isReqComplete = _request.isComplete();
 }
 
+void Client::_handleRedirection(const Route &route) {
+  const std::pair<int, std::string> &ret = route.loc->ret;
+
+  _response.setStatusCode(ret.first);
+  _response.setHeader("Location", ret.second);
+
+  _rawResponse = _response.toString();
+  _isRespReady = true;
+}
+
 /* ---------- GETTERS ---------- */
 
 const char *Client::getResponse() const { return _rawResponse.c_str(); }

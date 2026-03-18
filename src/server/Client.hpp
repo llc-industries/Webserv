@@ -87,6 +87,7 @@ private:
                  const std::string &filename);
 
   // In ClientUtils.cpp
+  void _handleRedirection(const Route &route);
   int _validateRequest() const;
   Route _resolveRoute() const;
   bool _isMethodAllowed(const Route &route) const;
