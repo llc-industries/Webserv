@@ -28,17 +28,11 @@ void CgiHandler::_initEnv() {
   } else {
     _envMap["QUERY_STRING"] = "";
   }
+  std::string cookie = _request.getHeader("Cookie");
+  if (!cookie.empty()){
+    _envMap["HTTP_COOKIE"] = cookie;
+  }
 }
-
-// la norme CGI nous obliges a creer dans le env ces variable:
-//      REQUEST_METHOD : "GET" ou "POST"
-//      QUERY_STRING : Ce qu'il y a après le ? dans l'URL (ex: id=42&name=anas)
-//      CONTENT_LENGTH : La taille du body (très important pour le POST)
-//      CONTENT_TYPE : Le type du body (ex: application/x-www-form-urlencoded)
-//      SCRIPT_FILENAME : Le chemin absolu vers le fichier .php sur ton disque
-//      dur. REDIRECT_STATUS=200 : Astuce vitale -> php-cgi refuse souvent de
-//      s'exécuter si cette variable n'est pas présente pour des raisons de
-//      sécurité.
 
 char **CgiHandler::_getEnvArray() const {
   char **envp = new char *[_envMap.size() + 1];

@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
 class CgiHandler {
 public:
   CgiHandler(const HttpRequest &request, const std::string &scriptPath,
