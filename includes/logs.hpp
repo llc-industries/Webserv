@@ -44,14 +44,9 @@
   std::cout << "[" << x << "] [" << YELLOW << "CLOSE" << RESET << "] " << y    \
             << '\n'
 
-#define LOG_RECV(x, y)                                                         \
-  std::cout << "[" << x << "] [" << SILVER << "RECV" << RESET << "] " << y     \
-            << '\n'
-
-#define LOG_SEND(x, y)                                                         \
-  std::cout << "[" << x << "] [" << WHITE << "SEND" << RESET << "] " << y      \
-            << '\n'
-
-// TODO: CGI / HTTP Status logs ?
+#define LOG_HTTP(fd, method, path, status, bytes, agent)                       \
+  std::cout << "[" << fd << "] [" << BLUE << "HTTP" << RESET << "] " << method \
+            << " " << path << " --> " << (status > 400 ? RED : GREEN)          \
+            << status << RESET << " (" << bytes << "B) | " << agent << '\n'
 
 #endif /* LOGS_HPP */

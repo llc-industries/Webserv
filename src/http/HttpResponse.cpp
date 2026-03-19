@@ -7,6 +7,8 @@ HttpResponse::HttpResponse() : _status_code(200), _status_message("OK") {
 
 HttpResponse::~HttpResponse() {}
 
+int HttpResponse::getStatusCode() const { return _status_code; }
+
 void HttpResponse::setStatusCode(int code) {
   _status_code = code;
   _status_message = getReasonPhrase(code);
@@ -91,7 +93,8 @@ std::string HttpResponse::toString() const {
        it != _headers.end(); ++it) {
     response << it->first << ": " << it->second << "\r\n";
   }
-  for (std::vector<std::string>::const_iterator it = _cookies_to_set.begin(); it != _cookies_to_set.end(); ++it){
+  for (std::vector<std::string>::const_iterator it = _cookies_to_set.begin();
+       it != _cookies_to_set.end(); ++it) {
     response << "Set-Cookie:" << *it << ";Path=/; HttpOnly\r\n";
   }
   response << "\r\n";

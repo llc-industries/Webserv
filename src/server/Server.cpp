@@ -197,7 +197,6 @@ void Server::_handleClientRead(int fd) {
     _closeClient(fd);
     return;
   }
-  LOG_RECV(fd, "recv() received " << retval << " bytes");
   Client &client = _clientMap.find(fd)->second;
   client.swallow(buf, retval);
   if (client.isRequestComplete() == true) {
@@ -221,20 +220,28 @@ void Server::_handleClientWrite(int fd) {
   }
   if (client.isResponseReady() == true) {
     ssize_t retval = 0;
-    size_t rest = client.getResponseLength() - client.getBytesSent();
+    size_t rest = client.getResponseStrLength() - client.getBytesSent();
 
-    retval = send(fd, client.getResponse() + client.getBytesSent(), rest, 0);
+    retval = send(fd, client.getResponseStr() + client.getBytesSent(), rest, 0);
     if (retval <= 0) {
       LOG_ERR("send(): " + std::string(strerror(errno)));
       _closeClient(fd);
       return;
     } else {
-      LOG_SEND(fd, "send() sent " << retval << " bytes");
       client.addBytesSent(retval);
     }
 
-    if (client.getBytesSent() >= client.getResponseLength())
+    if (client.getBytesSent() >= client.getResponseStrLength()) {
+
+      std::string agent = client.getRequest().getHeader("User-Agent");
+      if (agent.empty() == true)
+        agent = "Unknown agent";
+
+      LOG_HTTP(
+          fd, client.getRequest().getMethod(), client.getRequest().getPath(),
+          client.getResponse().getStatusCode(), client.getBytesSent(), agent);
       _closeClient(fd);
+    }
   }
 }
 

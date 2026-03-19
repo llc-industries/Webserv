@@ -22,9 +22,11 @@ public:
 
   // In ClientUtils.cpp
   void swallow(const char *buf, ssize_t bytesRead);
-  const char *getResponse() const;
-  size_t getResponseLength() const;
+  const char *getResponseStr() const;
+  size_t getResponseStrLength() const;
   size_t getBytesSent() const;
+  const HttpRequest &getRequest() const;
+  const HttpResponse &getResponse() const;
   void addBytesSent(size_t value);
   bool isRequestComplete() const;
   bool isResponseReady() const;
