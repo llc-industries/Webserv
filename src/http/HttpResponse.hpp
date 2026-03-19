@@ -15,11 +15,10 @@ public:
   void setStatusCode(int code);
   void setHeader(const std::string &key, const std::string &value);
   void setBody(const std::string &body);
-  // MIME
   void autoDetectContentType(const std::string &path);
   std::string toString() const;
-  std::string getReasonPhrase(int code) const; // ex:200=OK 404="NOT FOUND"
-  void setCookie(const std::string& name, const std::string& value){
+  std::string getReasonPhrase(int code) const;
+  void setCookie(const std::string &name, const std::string &value) {
     _cookies_to_set.push_back(name + '=' + value);
   }
 
@@ -28,7 +27,7 @@ private:
   std::string _status_message;
   std::map<std::string, std::string> _headers;
   std::string _body;
-  std::vector<std::string>_cookies_to_set;
+  std::vector<std::string> _cookies_to_set;
 };
 
 #endif /* HTTPRESPONSE_H */

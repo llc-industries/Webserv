@@ -4,16 +4,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>webserv</title>
+    <title>Webserv - 42</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 40px;
+        }
+
+        h1 {
+            color: #00babc;
+            border-bottom: 2px solid #00babc;
+            padding-bottom: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+
+        a {
+            color: #00babc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul {
+            list-style-type: square;
+        }
+
+        button {
+            background-color: #00babc;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #009899;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Welcome to Webserv !</h1>
+        <h1>🚀 Webserv Dashboard</h1>
+        <p>Bienvenue sur ton serveur. Utilise cette page pour tester les différentes fonctionnalités lors de la
+            soutenance.</p>
 
-        <!-- <div class="image-box">
-            <img src="/photo.jpg" alt="Photo de test Webserv">
-        </div> -->
+        <div class="card">
+            <h3>📂 Navigation et Autoindex</h3>
+            <ul>
+                <li><a href="/cgi-tests/">Voir l'autoindex du dossier cgi-tests/</a></li>
+                <li><a href="/error_pages/">Voir l'autoindex du dossier error_pages/</a></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>⚙️ Scripts CGI</h3>
+            <ul>
+                <li><a href="/cgi-tests/test.php">Test PHP (Informations de la requête)</a></li>
+                <li><a href="/cgi-tests/test.py">Test Python basique</a></li>
+                <li><a href="/cgi-tests/env.py">Dump des variables d'environnement (GET)</a></li>
+                <li><a href="/cgi-bin/login.py">Test de Session / Cookies (Bonus)</a></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>📤 Upload de Fichier (POST Multipart)</h3>
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <input type="file" name="fichier_test" required>
+                <button type="submit">Uploader vers le serveur</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>🔀 Redirections (Port 9999 si tu utilises default.conf)</h3>
+            <ul>
+                <li><a href="http://localhost:9999/intra">Redirection 301 vers l'Intra 42</a></li>
+                <li><a href="http://localhost:9999/google">Redirection temporaire 302</a></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>🚨 Tests d'erreurs (Sur le port 8080)</h3>
+            <ul>
+                <li><a href="/fichier_fantome.html">Forcer une erreur 404 (Not Found)</a></li>
+            </ul>
+        </div>
     </div>
 </body>
 

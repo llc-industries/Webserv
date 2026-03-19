@@ -20,8 +20,6 @@
             << BLACK " ▀██▀██▀  ██▄▄▄ ██▄█▀ ▄▄██▀ ██▄▄▄ ██ ██  ▀█▀  \n"        \
             << RESET << std::endl;
 
-#ifdef DEBUG
-
 // General logs
 
 #define LOG_INFO(x)                                                            \
@@ -55,18 +53,5 @@
             << '\n'
 
 // TODO: CGI / HTTP Status logs ?
-
-#else
-
-#define LOG_INFO(x)
-#define LOG_CONFIG(x)
-#define LOG_WARN(x)
-#define LOG_ERR(x)
-#define LOG_ACCEPT(x)
-#define LOG_CLOSE(x)
-#define LOG_RECV(x)
-#define LOG_SEND(x)
-
-#endif
 
 #endif /* LOGS_HPP */

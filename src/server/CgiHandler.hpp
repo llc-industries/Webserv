@@ -13,14 +13,15 @@ public:
              const std::string &cgiBinPath);
   ~CgiHandler();
 
-  int executeCgi(pid_t &out_pid, int &out_fd, int &in_fd); // execute le cgi
+  int executeCgi(pid_t &out_pid, int &out_fd, int &in_fd);
+
 private:
   const HttpRequest &_request;
   std::string _scriptPath;
   std::string _cgiBinPath;
   std::map<std::string, std::string> _envMap;
 
-  void _initEnv(); // initialise les variables d'env
+  void _initEnv();
   char **_getEnvArray() const;
 };
 
