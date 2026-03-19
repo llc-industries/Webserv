@@ -1,14 +1,14 @@
 NAME := webserv
 CC := c++
-# TODO: Add -Werror when done
-CFLAGS := -std=c++98 -Wall -Wextra -MMD -Iincludes
+
+CFLAGS := -std=c++98 -Wall -Wextra -Werror -MMD -Iincludes
 
 SRCS := $(shell find src -name "*.cpp")
 OBJ_DIR := build
 OBJ := $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 DEPS := $(OBJ:.o=.d)
 
-default: debug
+default: vg
 
 all: $(NAME)
 
@@ -27,10 +27,18 @@ fclean: clean
 
 re: fclean all
 
--include $(DEPS)
+vg: CFLAGS += -g3
+san: CFLAGS += -g3 -fsanitize=address,undefined
+eval: CFLAGS += -O2
 
-debug: fclean
-debug: CFLAGS += -g3 # -fsanitize=address,undefined
-debug: all
+vg: re
+	valgrind --leak-check=full --track-fds=yes --trace-children=yes --show-leak-kinds=all ./$(NAME)
+
+san: re
+	./$(NAME)
+
+eval: re
+
+-include $(DEPS)
 
 .PHONY: all clean fclean re debug
