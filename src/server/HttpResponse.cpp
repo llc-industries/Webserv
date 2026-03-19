@@ -91,6 +91,9 @@ std::string HttpResponse::toString() const {
        it != _headers.end(); ++it) {
     response << it->first << ": " << it->second << "\r\n";
   }
+  for (std::vector<std::string>::const_iterator it = _cookies_to_set.begin(); it != _cookies_to_set.end(); ++it){
+    response << "Set-Cookie:" << *it << ";Path=/; HttpOnly\r\n";
+  }
   response << "\r\n";
   response << _body;
   return response.str();

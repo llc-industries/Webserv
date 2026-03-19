@@ -63,7 +63,18 @@ void HttpRequest::parseHeaderLine(const std::string &line) {
       value = value.substr(value_start);
     }
     _headers[key] = value;
-    if (key == "Content-Length") {
+    if (key == "Cookie"){
+      std::stringstream ss(value);
+      std::string pair;
+      while (std::getline(ss, pair, ':')){
+        size_t sep = pair.find('=');
+        if (sep != std::string::npos){
+          std::string c_key = pair.substr(pair.find_first_not_of(" "), sep);
+          std::string c_value = pair.substr(sep + 1);
+          _cookies[c_key] = c_value;
+        }
+      }
+    }else if (key == "Content-Length") {
       _content_length = std::atoi(value.c_str());
     } else if (key == "Transfer-Encoding" &&
                value.find("chunked") != std::string::npos) {

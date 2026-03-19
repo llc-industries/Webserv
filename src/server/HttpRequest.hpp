@@ -25,6 +25,7 @@ public:
   std::string getPath() const;
   std::string getHeader(const std::string &key) const;
   const std::string &getBody() const;
+  const std::map<std::string, std::string>& getCookies() const {return _cookies;}
 
 private:
   std::string _raw_data;
@@ -40,6 +41,7 @@ private:
   bool _is_chunked;
   size_t _body_pos;
   size_t _content_length;
+  std::map<std::string, std::string> _cookies;
   // ft de parsing de requete
   void parseFirstLine(const std::string &line);
   void parseHeaderLine(const std::string &line);

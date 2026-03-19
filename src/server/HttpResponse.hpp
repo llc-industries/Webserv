@@ -5,6 +5,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <vector>
 
 class HttpResponse {
 public:
@@ -18,12 +19,16 @@ public:
   void autoDetectContentType(const std::string &path);
   std::string toString() const;
   std::string getReasonPhrase(int code) const; // ex:200=OK 404="NOT FOUND"
+  void setCookie(const std::string& name, const std::string& value){
+    _cookies_to_set.push_back(name + '=' + value);
+  }
 
 private:
   int _status_code;
   std::string _status_message;
   std::map<std::string, std::string> _headers;
   std::string _body;
+  std::vector<std::string>_cookies_to_set;
 };
 
 #endif /* HTTPRESPONSE_H */
