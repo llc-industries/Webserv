@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 # CGI Test Suite for Webserv
-# Usage: bash www/cgi_test.sh [host] [port]
+# Usage: bash tests/cgi_test.sh [host] [port]
 # Default: localhost 8080
 # ============================================================
 
@@ -49,22 +49,22 @@ section "Groupe 1 — GET / POST Basiques"
 # ============================================================
 
 # T01 — GET PHP avec QUERY_STRING
-R=$(curl -si "${BASE}/test.php?user=anas&age=21" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/test.php?user=anas&age=21" --max-time 5)
 check_status "T01 GET PHP status 200" "$R" "200"
 check        "T01 GET PHP QUERY_STRING contient 'anas'" "$R" "anas"
 
 # T02 — GET Python avec QUERY_STRING
-R=$(curl -si "${BASE}/test.py?lang=python&version=3" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/test.py?lang=python&version=3" --max-time 5)
 check_status "T02 GET Python status 200" "$R" "200"
 check        "T02 GET Python QUERY_STRING contient 'python'" "$R" "python"
 
 # T03 — POST PHP avec body
-R=$(curl -si -X POST -d "hello from test" "${BASE}/test.php" --max-time 5)
+R=$(curl -si -X POST -d "hello from test" "${BASE}/cgi-tests/test.php" --max-time 5)
 check_status "T03 POST PHP status 200" "$R" "200"
 check        "T03 POST PHP body lu par le script" "$R" "hello from test"
 
 # T04 — POST Python avec body
-R=$(curl -si -X POST -d "hello from python" "${BASE}/test.py" --max-time 5)
+R=$(curl -si -X POST -d "hello from python" "${BASE}/cgi-tests/test.py" --max-time 5)
 check_status "T04 POST Python status 200" "$R" "200"
 check        "T04 POST Python body lu par le script" "$R" "hello from python"
 
@@ -73,24 +73,24 @@ section "Groupe 2 — Variables d'environnement CGI"
 # ============================================================
 
 # T05 — REQUEST_METHOD=GET
-R=$(curl -si "${BASE}/env.py" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/env.py" --max-time 5)
 check "T05 REQUEST_METHOD=GET" "$R" "REQUEST_METHOD=GET"
 
 # T06 — POST : CONTENT_TYPE et CONTENT_LENGTH présents
 R=$(curl -si -X POST -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "data=test" "${BASE}/env.py" --max-time 5)
+    -d "data=test" "${BASE}/cgi-tests/env.py" --max-time 5)
 check "T06 CONTENT_TYPE défini (POST)" "$R" "CONTENT_TYPE="
 check "T06 CONTENT_LENGTH défini (POST)" "$R" "CONTENT_LENGTH="
 
 # T07 — GATEWAY_INTERFACE=CGI/1.1
-R=$(curl -si "${BASE}/env.py" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/env.py" --max-time 5)
 check "T07 GATEWAY_INTERFACE=CGI/1.1" "$R" "GATEWAY_INTERFACE=CGI/1.1"
 
 # T08 — SERVER_PROTOCOL=HTTP/1.1
 check "T08 SERVER_PROTOCOL=HTTP/1.1" "$R" "SERVER_PROTOCOL=HTTP/1.1"
 
 # T09 — QUERY_STRING transmis
-R=$(curl -si "${BASE}/env.py?foo=bar&baz=42" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/env.py?foo=bar&baz=42" --max-time 5)
 check "T09 QUERY_STRING=foo=bar&baz=42" "$R" "QUERY_STRING=foo=bar"
 
 # ============================================================
@@ -98,12 +98,12 @@ section "Groupe 3 — Headers CGI retournés"
 # ============================================================
 
 # T10 — headers.py : Set-Cookie transmis dans la réponse HTTP
-R=$(curl -si "${BASE}/headers.py" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/headers.py" --max-time 5)
 check_status "T10 headers.py status 200" "$R" "200"
 check        "T10 Set-Cookie transmis" "$R" "Set-Cookie"
 
 # T11 — lf_headers.py : réponse valide avec \n\n separateur
-R=$(curl -si "${BASE}/lf_headers.py" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/lf_headers.py" --max-time 5)
 check_status "T11 lf_headers.py status 200" "$R" "200"
 check        "T11 body reçu après \\n\\n" "$R" "LF-only headers OK"
 
@@ -112,19 +112,19 @@ section "Groupe 4 — POST edge cases"
 # ============================================================
 
 # T12 — POST avec body vide (Content-Length: 0)
-R=$(curl -si -X POST -H "Content-Length: 0" "${BASE}/empty_post.py" --max-time 5)
+R=$(curl -si -X POST -H "Content-Length: 0" "${BASE}/cgi-tests/empty_post.py" --max-time 5)
 check_status "T12 empty POST status 200" "$R" "200"
 check        "T12 body vide détecté (0 bytes)" "$R" "0 bytes"
 
 # T13 — POST avec 100KB
 DATA=$(python3 -c "print('A' * 102400, end='')")
-R=$(curl -si -X POST --data-binary "$DATA" "${BASE}/big_post.py" --max-time 10)
+R=$(curl -si -X POST --data-binary "$DATA" "${BASE}/cgi-tests/big_post.py" --max-time 10)
 check_status "T13 big POST 100KB status 200" "$R" "200"
 check        "T13 big POST 100KB reçu entier" "$R" "102400 bytes"
 
 # T14 — POST avec 500KB
 DATA=$(python3 -c "print('B' * 512000, end='')")
-R=$(curl -si -X POST --data-binary "$DATA" "${BASE}/big_post.py" --max-time 10)
+R=$(curl -si -X POST --data-binary "$DATA" "${BASE}/cgi-tests/big_post.py" --max-time 10)
 check_status "T14 big POST 500KB status 200" "$R" "200"
 check        "T14 big POST 500KB reçu entier" "$R" "512000 bytes"
 
@@ -133,7 +133,7 @@ section "Groupe 5 — Robustesse / Erreurs"
 # ============================================================
 
 # T15 — Script inexistant -> 404 ou 500
-R=$(curl -si "${BASE}/nonexistent_script.py" --max-time 5)
+R=$(curl -si "${BASE}/cgi-tests/nonexistent_script.py" --max-time 5)
 if echo "$R" | grep -qE "HTTP/1.1 (404|500)"; then
     pass "T15 Script inexistant -> 4xx/5xx"
 else
@@ -142,7 +142,7 @@ else
 fi
 
 # T16 — crash.py : serveur ne crash pas
-R=$(curl -si -X POST -d "test body" "${BASE}/crash.py" --max-time 5)
+R=$(curl -si -X POST -d "test body" "${BASE}/cgi-tests/crash.py" --max-time 5)
 if echo "$R" | grep -qE "HTTP/1.1 (200|500|502)"; then
     pass "T16 crash.py -> réponse reçue (serveur vivant)"
 else
@@ -159,7 +159,7 @@ section "Groupe 6 — Concurrence non-bloquante"
 
 # T18 — sleep5.py + GET simultané : GET doit répondre avant que sleep finisse
 START=$(date +%s)
-curl -s "${BASE}/sleep5.py" --max-time 15 > /tmp/cgi_sleep_result.txt &
+curl -s "${BASE}/cgi-tests/sleep5.py" --max-time 15 > /tmp/cgi_sleep_result.txt &
 SLEEP_PID=$!
 sleep 0.3
 R=$(curl -si "${BASE}/" --max-time 5)
@@ -176,7 +176,7 @@ wait $SLEEP_PID 2>/dev/null
 # T19 — 5 requêtes CGI simultanées -> toutes répondent
 PIDS=""
 for i in 1 2 3 4 5; do
-    curl -s "${BASE}/test.py?id=$i" --max-time 10 > /tmp/cgi_concurrent_$i.txt &
+    curl -s "${BASE}/cgi-tests/test.py?id=$i" --max-time 10 > /tmp/cgi_concurrent_$i.txt &
     PIDS="$PIDS $!"
 done
 ALL_OK=true
@@ -204,7 +204,7 @@ section "Groupe 7 — Timeout CGI"
 # T20 — infinite.py -> réponse d'erreur dans <= 35s
 echo "  (attente timeout ~30s...)"
 START=$(date +%s)
-R=$(curl -si "${BASE}/infinite.py" --max-time 40)
+R=$(curl -si "${BASE}/cgi-tests/infinite.py" --max-time 40)
 END=$(date +%s)
 ELAPSED=$((END - START))
 
@@ -225,7 +225,7 @@ section "Groupe 8 — Sortie volumineuse"
 # ============================================================
 
 # T22 — spam.php -> réponse complète reçue
-R=$(curl -si "${BASE}/spam.php" --max-time 15)
+R=$(curl -si "${BASE}/cgi-tests/spam.php" --max-time 15)
 check_status "T22 spam.php status 200" "$R" "200"
 # Vérifie qu'on a bien reçu des données volumineuses (>10KB)
 SIZE=$(echo "$R" | wc -c)

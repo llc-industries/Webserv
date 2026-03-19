@@ -1,10 +1,10 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "../http/HttpRequest.hpp"
+#include "../http/HttpResponse.hpp"
 #include "CgiHandler.hpp"
 #include "ConfigStructs.hpp"
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
 
 #include <cstdio>
 #include <ctime>

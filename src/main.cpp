@@ -6,7 +6,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-#define DEFAULT_CONF "conf/test.conf"
+#define DEFAULT_CONF "conf/webserv.conf"
 
 std::string findConfigFile(int argc, char **argv) {
   std::string configPath;

@@ -1,12 +1,11 @@
 #ifndef CGIHANDLER_H
 #define CGIHANDLER_H
 
-#include "HttpRequest.hpp"
+#include "../http/HttpRequest.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
-
 
 class CgiHandler {
 public:
