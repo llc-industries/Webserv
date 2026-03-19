@@ -2,7 +2,7 @@
 
 void Client::swallow(const char *buf, ssize_t bytesRead) {
   _lastActivity = std::time(NULL);
-  _request.swallow(buf, bytesRead);
+  _request.swallow(buf, bytesRead, _context->maxBodySize);
   _isReqComplete = _request.isComplete();
 }
 
@@ -32,15 +32,14 @@ std::time_t Client::getLastActivity() const { return _lastActivity; }
 
 // Check si la request est bien formée
 int Client::_validateRequest() const {
+  // Error 413 -> Entity Too Large
+  if (_request.getErrorCode() != 0)
+    return _request.getErrorCode();
+
   // Error 400 -> Bad request
   if (_request.getPath().empty() || _request.getMethod().empty() ||
       _request.getHeader("Host").empty())
     return 400;
-
-  // Error 413 -> Entity Too Large
-  if (_request.getMethod() == "POST" && _context->maxBodySize > 0)
-    if (_request.getBody().size() > static_cast<size_t>(_context->maxBodySize))
-      return 413;
 
   return 0;
 }

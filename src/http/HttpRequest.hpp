@@ -18,11 +18,12 @@ public:
   HttpRequest();
   ~HttpRequest();
 
-  void swallow(const char *buffer, size_t bytes);
+  void swallow(const char *buffer, size_t bytes, int maxBodySize);
   bool isComplete() const;
   std::string getMethod() const;
   std::string getPath() const;
   std::string getHeader(const std::string &key) const;
+  int getErrorCode() const;
   const std::string &getBody() const;
   const std::map<std::string, std::string> &getCookies() const {
     return _cookies;
@@ -43,9 +44,10 @@ private:
   size_t _body_pos;
   size_t _content_length;
   std::map<std::string, std::string> _cookies;
+  int _error_code;
   void parseFirstLine(const std::string &line);
   void parseHeaderLine(const std::string &line);
-  void parseChunkedBody();
+  void parseChunkedBody(int maxBodySize);
 };
 
 #endif /* HTTPREQUEST_H */
