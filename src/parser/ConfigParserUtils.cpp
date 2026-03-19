@@ -90,6 +90,8 @@ void ConfigParser::_parseRoot(ServerConfig &sc) {
     _parserThrowDup("root", "server");
 
   sc.root = _getTokStr();
+  if (sc.root.size() > 1 && sc.root[sc.root.length() - 1] == '/')
+    sc.root.erase(sc.root.length() - 1);
 
   _advance();
   _expect(";");
@@ -200,6 +202,9 @@ void ConfigParser::_parseLocPost(Location &loc) {
     _parserThrowDup("upload_store", "location");
 
   loc.uploadPath = _getTokStr();
+  if (loc.uploadPath.size() > 1 &&
+      loc.uploadPath[loc.uploadPath.length() - 1] == '/')
+    loc.uploadPath.erase(loc.uploadPath.length() - 1);
 
   _advance();
   _expect(";");
@@ -224,6 +229,8 @@ void ConfigParser::_parseLocRoot(Location &loc) {
     _parserThrowDup("root", "location");
 
   loc.root = _getTokStr();
+  if (loc.root.size() > 1 && loc.root[loc.root.length() - 1] == '/')
+    loc.root.erase(loc.root.length() - 1);
 
   _advance();
   _expect(";");

@@ -43,28 +43,20 @@ int Client::_validateRequest() const {
   return 0;
 }
 
-// Prépare la structure route
-// route contiens:
-// Le bloc location si besoin
-// Les path root et full path
 Client::Route Client::_resolveRoute() const {
   Route ret;
+  std::string path = _request.getPath();
+
+  size_t query_pos = path.find('?');
+  if (query_pos != std::string::npos)
+    path = path.substr(0, query_pos);
+
   size_t maxLen = 0;
-  // Extraction du path (sans ?)
-  std::string full_req_path = _request.getPath();
-  std::string path = full_req_path;
-
-  size_t query_pos = full_req_path.find('?');
-  if (query_pos != std::string::npos) {
-    path = full_req_path.substr(0, query_pos);
-  }
-
-  // Find appropriate location
   for (size_t i = 0; i < _context->locations.size(); i++) {
     const std::string &locPath = _context->locations[i].path;
+
     if (locPath.length() > 1 && locPath[0] == '*') {
       std::string ext = locPath.substr(1);
-
       if (path.length() >= ext.length() &&
           path.compare(path.length() - ext.length(), ext.length(), ext) == 0) {
         ret.loc = &(_context->locations[i]);
@@ -76,8 +68,7 @@ Client::Route Client::_resolveRoute() const {
     }
   }
 
-  // Set root + full path
-  if (ret.loc != NULL && ret.loc->root.empty() == false)
+  if (ret.loc != NULL)
     ret.root = ret.loc->root;
   else
     ret.root = _context->root;
@@ -85,9 +76,9 @@ Client::Route Client::_resolveRoute() const {
   ret.full_path = ret.root + path;
 
   if (path == "/") {
-    if (ret.loc && ret.loc->index.empty() == false)
+    if (ret.loc != NULL && ret.loc->index.empty() == false)
       ret.full_path = ret.root + "/" + ret.loc->index[0];
-    else if (_context->index.empty() == false)
+    else if (ret.loc == NULL && _context->index.empty() == false)
       ret.full_path = ret.root + "/" + _context->index[0];
   }
 
