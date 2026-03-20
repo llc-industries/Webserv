@@ -63,17 +63,39 @@
         button:hover {
             background-color: #009899;
         }
+
+        code {
+            display: block;
+            background: #1e1e1e;
+            color: #0f0;
+            font-size: 0.78em;
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        .cgi-entry {
+            margin-bottom: 14px;
+        }
+
+        .cgi-entry span {
+            display: block;
+            font-size: 0.88em;
+            color: #666;
+            margin-top: 2px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>🚀 Webserv Dashboard</h1>
+        <h1> Webserv Dashboard</h1>
         <p>Bienvenue sur ton serveur. Utilise cette page pour tester les différentes fonctionnalités lors de la
             soutenance.</p>
 
         <div class="card">
-            <h3>📂 Navigation et Autoindex</h3>
+            <h3>Navigation et Autoindex</h3>
             <ul>
                 <li><a href="/cgi-tests/">Voir l'autoindex du dossier cgi-tests/</a></li>
                 <li><a href="/error_pages/">Voir l'autoindex du dossier error_pages/</a></li>
@@ -82,16 +104,128 @@
 
         <div class="card">
             <h3>⚙️ Scripts CGI</h3>
-            <ul>
-                <li><a href="/cgi-tests/test.php">Test PHP (Informations de la requête)</a></li>
-                <li><a href="/cgi-tests/test.py">Test Python basique</a></li>
-                <li><a href="/cgi-tests/env.py">Dump des variables d'environnement (GET)</a></li>
-                <li><a href="/cgi-bin/login.py">Test de Session / Cookies (Bonus)</a></li>
-            </ul>
+
+            <h4 style="margin-top:16px; color:#00babc;">— Basiques</h4>
+
+            <div class="cgi-entry">
+                <a href="/cgi-tests/request_info.py">request_info.py</a>
+                <span>Affiche méthode, query string et body POST (Python)</span>
+                <code>curl -X POST http://localhost:8080/cgi-tests/request_info.py -d "nom=Alice&age=21"</code>
+                <form action="/cgi-tests/request_info.py" method="POST" style="margin-top:6px;">
+                    nom: <input type="text" name="nom" value="Alice">
+                    age: <input type="text" name="age" value="21">
+                    <button type="submit">Envoyer</button>
+                </form>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/request_info.php">request_info.php</a>
+                <span>Idem en PHP</span>
+                <code>curl -X POST http://localhost:8080/cgi-tests/request_info.php -d "nom=Alice&age=21"</code>
+                <form action="/cgi-tests/request_info.php" method="POST" style="margin-top:6px;">
+                    nom: <input type="text" name="nom" value="Alice">
+                    age: <input type="text" name="age" value="21">
+                    <button type="submit">Envoyer</button>
+                </form>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/env_dump.py">env_dump.py</a>
+                <span>Dump de toutes les variables d'environnement CGI</span>
+                <code>curl http://localhost:8080/cgi-tests/env_dump.py</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/login.py">login.py</a>
+                <span>Test de session et cookies (Bonus)</span>
+                <code>curl -c cookies.txt http://localhost:8080/cgi-bin/login.py?user=admin</code>
+            </div>
+
+            <h4 style="margin-top:16px; color:#00babc;">— Headers et parsing</h4>
+
+            <div class="cgi-entry">
+                <a href="/cgi-tests/custom_headers.py">custom_headers.py</a>
+                <span>Envoie Set-Cookie + X-Custom-Header dans la réponse CGI</span>
+                <code>curl -i http://localhost:8080/cgi-tests/custom_headers.py</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/lf_separator.py">lf_separator.py</a>
+                <span>Utilise \n\n au lieu de \r\n\r\n — teste la robustesse du parser</span>
+                <code>curl http://localhost:8080/cgi-tests/lf_separator.py</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/cgi_status_404.py">cgi_status_404.py</a>
+                <span>Le CGI retourne "Status: 404" — vérifie que le serveur le respecte</span>
+                <code>curl -i http://localhost:8080/cgi-tests/cgi_status_404.py</code>
+            </div>
+
+            <h4 style="margin-top:16px; color:#00babc;">— Body POST</h4>
+
+            <div class="cgi-entry">
+                <a href="/cgi-tests/post_body_check.py">post_body_check.py</a>
+                <span>Vérifie que stdin reçoit exactement CONTENT_LENGTH octets</span>
+                <code>curl -X POST http://localhost:8080/cgi-tests/post_body_check.py -d "hello world"</code>
+                <form action="/cgi-tests/post_body_check.py" method="POST" style="margin-top:6px;">
+                    <input type="text" name="msg" value="hello world">
+                    <button type="submit">Envoyer</button>
+                </form>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/binary_upload.py">binary_upload.py</a>
+                <span>Upload binaire via stdin CGI, écrit dans upload/chunk_result.bin</span>
+                <code>curl -X POST http://localhost:8080/cgi-tests/binary_upload.py --data-binary @fichier.bin</code>
+                <form action="/cgi-tests/binary_upload.py" method="POST" enctype="multipart/form-data" style="margin-top:6px;">
+                    <input type="file" name="fichier" required>
+                    <button type="submit">Uploader</button>
+                </form>
+            </div>
+
+            <h4 style="margin-top:16px; color:#00babc;">— Erreurs et crash</h4>
+
+            <div class="cgi-entry">
+                <a href="/cgi-tests/crash_before_header.py">crash_before_header.py</a>
+                <span>Crash avant d'écrire les headers → doit retourner 500</span>
+                <code>curl -i http://localhost:8080/cgi-tests/crash_before_header.py</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/crash_after_header.py">crash_after_header.py</a>
+                <span>Crash après les headers → comportement différent du précédent</span>
+                <code>curl -i http://localhost:8080/cgi-tests/crash_after_header.py</code>
+            </div>
+
+            <h4 style="margin-top:16px; color:#00babc;">— Timeout et concurrence</h4>
+
+            <div class="cgi-entry">
+                <a href="/cgi-tests/timeout_5s.py">timeout_5s.py</a>
+                <span>Attend 5s — ouvre dans 2 onglets pour tester la concurrence</span>
+                <code>curl http://localhost:8080/cgi-tests/timeout_5s.py &amp; curl http://localhost:8080/ &amp;</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/timeout_5s.php">timeout_5s.php</a>
+                <span>Idem en PHP</span>
+                <code>curl http://localhost:8080/cgi-tests/timeout_5s.php</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/timeout_10s.py">timeout_10s.py</a>
+                <span>Attend 10s → doit déclencher le timeout CGI du serveur</span>
+                <code>curl http://localhost:8080/cgi-tests/timeout_10s.py</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/infinite_loop.py">infinite_loop.py</a>
+                <span>Boucle infinie Python → doit être killé par le timeout</span>
+                <code>curl http://localhost:8080/cgi-tests/infinite_loop.py</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/infinite_loop.php">infinite_loop.php</a>
+                <span>Boucle infinie PHP → idem</span>
+                <code>curl http://localhost:8080/cgi-tests/infinite_loop.php</code>
+            </div>
+            <div class="cgi-entry">
+                <a href="/cgi-tests/large_output.php">large_output.php</a>
+                <span>Génère 100 000 lignes — teste la gestion de gros output</span>
+                <code>curl http://localhost:8080/cgi-tests/large_output.php | wc -l</code>
+            </div>
         </div>
 
         <div class="card">
-            <h3>📤 Upload de Fichier (POST Multipart)</h3>
+            <h3>Upload de Fichier (POST Multipart)</h3>
             <form action="/upload" method="POST" enctype="multipart/form-data">
                 <input type="file" name="fichier_test" required>
                 <button type="submit">Uploader vers le serveur</button>
@@ -99,7 +233,7 @@
         </div>
 
         <div class="card">
-            <h3>🔀 Redirections (Port 9999 si tu utilises default.conf)</h3>
+            <h3> Redirections (Port 9999 si tu utilises default.conf)</h3>
             <ul>
                 <li><a href="http://localhost:9999/intra">Redirection 301 vers l'Intra 42</a></li>
                 <li><a href="http://localhost:9999/google">Redirection temporaire 302</a></li>
@@ -107,7 +241,7 @@
         </div>
 
         <div class="card">
-            <h3>🚨 Tests d'erreurs (Sur le port 8080)</h3>
+            <h3>Tests d'erreurs-Fichier fantome (Sur le port 8080)</h3>
             <ul>
                 <li><a href="/fichier_fantome.html">Forcer une erreur 404 (Not Found)</a></li>
             </ul>

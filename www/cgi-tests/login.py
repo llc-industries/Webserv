@@ -35,11 +35,11 @@ else:
         print("Set-Cookie: session_id=42_is_awesome; Path=/; HttpOnly")
         print("\r\n")
         print("<h1>Connexion reussie !</h1>")
-        print("<p>Le cookie vient d'etre pose. <a href='/login.py'>Actualisez la page</a>.</p>")
+        print("<p>Le cookie vient d'etre pose. <a href='/cgi-tests/login.py'>Actualisez la page</a>.</p>")
     else:
         print("\r\n")
         print("<h1>Page de Login</h1>")
-        print("<form action='/login.py' method='GET'>")
+        print("<form action='/cgi-tests/login.py' method='GET'>")
         print("User: <input type='text' name='user' value='admin'>")
         print("<input type='submit' value='Se connecter'>")
         print("</form>")
