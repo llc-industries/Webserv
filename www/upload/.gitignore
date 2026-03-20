@@ -1,0 +1,3 @@
+*
+!.gitignore
+# Keep this folder even if empty, so we don't get error 500 on POST
