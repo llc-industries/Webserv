@@ -7,18 +7,17 @@ typedef std::map<int, std::string>::const_iterator it_map;
 ConfigPrint::ConfigPrint(const std::vector<ServerConfig> &config)
     : _config(config) {
 
-  for (size_t i = 0; i < config.size(); i++) {
+  for (size_t i = 0; i < _config.size(); i++) {
     LOG_CONFIG(GREEN " ======== [ Server block " << (i + 1)
                                                  << " ] ========" RESET);
-    _printServerBlock(config[i]);
-    for (size_t j = 0; j < config[i].locations.size(); j++) {
-      LOG_CONFIG(YELLOW " ==== [ Location " << config[i].locations[j].path
+    _printServerBlock(_config[i]);
+    for (size_t j = 0; j < _config[i].locations.size(); j++) {
+      LOG_CONFIG(YELLOW " ==== [ Location " << _config[i].locations[j].path
                                             << " ] ====" RESET);
-      _printLocationBlock(config[i].locations[j]);
+      _printLocationBlock(_config[i].locations[j]);
     }
   }
 }
-
 void ConfigPrint::_printServerBlock(const ServerConfig &sc) const {
   std::stringstream ss;
 
