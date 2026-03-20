@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="darkreader-lock">
+	<title>Webserv - 7777</title>
+	<style>
+		:root {
+			--base: #1e1e2e;
+			--mantle: #181825;
+			--crust: #11111b;
+			--surface0: #313244;
+			--text: #cdd6f4;
+			--subtext0: #a6adc8;
+			--blue: #89b4fa;
+			--teal: #94e2d5;
+			--green: #a6e3a1;
+			--yellow: #f9e2af;
+			--red: #f38ba8;
+		}
+
+		body {
+			font-family: monospace;
+			background-color: var(--base);
+			color: var(--text);
+			margin: 40px;
+		}
+
+		h1 {
+			color: var(--teal);
+			border-bottom: 2px solid var(--surface0);
+			padding-bottom: 10px;
+		}
+
+		h2 {
+			color: var(--blue);
+			margin-top: 0;
+		}
+
+		.container {
+			max-width: 800px;
+			margin: 0 auto;
+		}
+
+		.box {
+			background-color: var(--mantle);
+			border: 1px solid var(--surface0);
+			padding: 20px;
+			border-radius: 6px;
+			margin-bottom: 20px;
+		}
+
+		a {
+			color: var(--green);
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		form {
+			background-color: var(--crust);
+			padding: 15px;
+			margin-top: 15px;
+			border: 1px solid var(--surface0);
+		}
+
+		button {
+			background-color: var(--base);
+			color: var(--text);
+			border: 1px solid var(--surface0);
+			padding: 5px 15px;
+			cursor: pointer;
+			font-family: inherit;
+			margin-top: 10px;
+		}
+
+		button:hover {
+			background-color: var(--yellow);
+			color: var(--base);
+		}
+
+		.warning-btn {
+			border-color: var(--yellow);
+		}
+
+		.log {
+			margin-top: 10px;
+			padding: 10px;
+			background-color: var(--crust);
+			border-left: 3px solid var(--subtext0);
+			display: none;
+			word-wrap: break-word;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>Webserv Dashboard</h1>
+
+		<div class="box">
+			<h2>Other servers</h2>
+			<ul>
+				<li><a href="http://localhost:8080/index8080.html">Port 8080 / 8081 : Main</a></li>
+				<li><a href="http://localhost:9090/index9090.html">Port 9090 : CGI / POST CGI</a></li>
+				<li><a href="http://localhost:9999/index9999.html">Port 9999 : Redirections</a></li>
+				<li><a href="http://localhost:7777/index7777.html">Port 7777 : Only 413 (You are here)</a></li>
+			</ul>
+		</div>
+
+		<div class="box">
+			<h2>413 Payload Too Large test</h2>
+
+			<code>client_max_body_size 10;</code>
+
+			<form onsubmit="event.preventDefault(); sendTooLargePayload();">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST: Send 50 bytes of
+					data</label>
+				<button type="submit" class="warning-btn">Envoyer (POST)</button>
+				<div id="payloadResult" class="log"></div>
+			</form>
+		</div>
+	</div>
+
+	<script>
+		function sendTooLargePayload() {
+			const resultDiv = document.getElementById('payloadResult');
+			resultDiv.style.display = 'block';
+			resultDiv.innerHTML = `<span style="color: var(--subtext0);">Envoi en cours...</span>`;
+
+			const payload = "A".repeat(50);
+
+			fetch('/', {
+				method: 'POST',
+				body: payload
+			})
+				.then(response => {
+					const color = response.ok ? 'var(--green)' : 'var(--red)';
+					resultDiv.innerHTML = `<span style="color: ${color};">Status: ${response.status} ${response.statusText}</span>`;
+				})
+				.catch(error => {
+					resultDiv.innerHTML = `<span style="color: var(--green);">Succès du court-circuit (Connexion TCP coupée) : ${error}</span>`;
+				});
+		}
+	</script>
+</body>
+
+</html>

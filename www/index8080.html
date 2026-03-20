@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="darkreader-lock">
+    <title>Webserv - 8080</title>
+    <style>
+        :root {
+            --base: #1e1e2e;
+            --mantle: #181825;
+            --crust: #11111b;
+            --surface0: #313244;
+            --text: #cdd6f4;
+            --subtext0: #a6adc8;
+            --blue: #89b4fa;
+            --teal: #94e2d5;
+            --green: #a6e3a1;
+            --red: #f38ba8;
+        }
+
+        body {
+            font-family: monospace;
+            background-color: var(--base);
+            color: var(--text);
+            margin: 40px;
+        }
+
+        h1 {
+            color: var(--teal);
+            border-bottom: 2px solid var(--surface0);
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--blue);
+            margin-top: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .box {
+            background-color: var(--mantle);
+            border: 1px solid var(--surface0);
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        a {
+            color: var(--green);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        form {
+            background-color: var(--crust);
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid var(--surface0);
+        }
+
+        input,
+        button {
+            background-color: var(--base);
+            color: var(--text);
+            border: 1px solid var(--surface0);
+            padding: 5px;
+            font-family: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border-color: var(--blue);
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--blue);
+            color: var(--base);
+        }
+
+        .danger-btn {
+            border-color: var(--red);
+        }
+
+        .danger-btn:hover {
+            background-color: var(--red);
+        }
+
+        .log {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--crust);
+            border-left: 3px solid var(--subtext0);
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Webserv Dashboard</h1>
+
+        <div class="box">
+            <h2>Other servers</h2>
+            <ul>
+                <li><a href="http://localhost:8080/">Port 8080 / 8081 : Main (You are here)</a></li>
+                <li><a href="http://localhost:9090/">Port 9090 : CGI / POST CGI</a></li>
+                <li><a href="http://localhost:9999/">Port 9999 : Redirections</a></li>
+                <li><a href="http://localhost:7777/">Port 7777 : Only 413 (10 byte body size)</a></li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h2>Standard HTTP (GET, POST, DELETE)</h2>
+
+            <p>> <a href="/index8080.html">GET /index8080.html</a></p>
+
+            <form onsubmit="event.preventDefault(); sendUpload();">
+                <label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST: Upload file to
+                    www/upload</label>
+                <input type="file" id="fileInput" required>
+                <button type="submit">Envoyer (POST)</button>
+                <div id="uploadLog" class="log"></div>
+            </form>
+
+            <form onsubmit="event.preventDefault(); sendDelete();">
+                <label style="color: var(--subtext0); display:block; margin-bottom:10px;">DELETE: Remove file from
+                    www/upload/</label>
+                <input type="text" id="deleteTarget" placeholder="filename.txt" required>
+                <button type="submit" class="danger-btn">DELETE</button>
+                <div id="deleteLog" class="log"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function sendUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const logDiv = document.getElementById('uploadLog');
+
+            if (fileInput.files.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('fileToUpload', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => {
+                    logDiv.style.display = 'block';
+                    logDiv.style.color = res.ok ? 'var(--green)' : 'var(--red)';
+                    logDiv.textContent = `Status: ${res.status} ${res.statusText}`;
+                })
+                .catch(err => {
+                    logDiv.style.display = 'block';
+                    logDiv.style.color = 'var(--red)';
+                    logDiv.textContent = `Erreur: ${err}`;
+                });
+        }
+
+        function sendDelete() {
+            const filename = document.getElementById('deleteTarget').value;
+            const logDiv = document.getElementById('deleteLog');
+
+            fetch('/upload/' + filename, { method: 'DELETE' })
+                .then(res => {
+                    logDiv.style.display = 'block';
+                    logDiv.style.color = res.ok ? 'var(--green)' : 'var(--red)';
+                    logDiv.textContent = `Status: ${res.status} ${res.statusText}`;
+                })
+                .catch(err => {
+                    logDiv.style.display = 'block';
+                    logDiv.style.color = 'var(--red)';
+                    logDiv.textContent = `Erreur: ${err}`;
+                });
+        }
+    </script>
+</body>
+
+</html>

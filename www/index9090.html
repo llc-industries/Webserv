@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="darkreader-lock">
+	<title>Webserv - 9090</title>
+	<style>
+		:root {
+			--base: #1e1e2e;
+			--mantle: #181825;
+			--crust: #11111b;
+			--surface0: #313244;
+			--text: #cdd6f4;
+			--subtext0: #a6adc8;
+			--blue: #89b4fa;
+			--teal: #94e2d5;
+			--green: #a6e3a1;
+			--yellow: #f9e2af;
+			--red: #f38ba8;
+		}
+
+		body {
+			font-family: monospace;
+			background-color: var(--base);
+			color: var(--text);
+			margin: 40px;
+		}
+
+		h1 {
+			color: var(--teal);
+			border-bottom: 2px solid var(--surface0);
+			padding-bottom: 10px;
+		}
+
+		h2 {
+			color: var(--blue);
+			margin-top: 0;
+			border-bottom: 1px dashed var(--surface0);
+			padding-bottom: 5px;
+		}
+
+		.container {
+			max-width: 900px;
+			margin: 0 auto;
+		}
+
+		.box {
+			background-color: var(--mantle);
+			border: 1px solid var(--surface0);
+			padding: 20px;
+			border-radius: 6px;
+			margin-bottom: 20px;
+		}
+
+		a {
+			color: var(--green);
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		form {
+			background-color: var(--crust);
+			padding: 15px;
+			margin-top: 15px;
+			border: 1px solid var(--surface0);
+			border-radius: 4px;
+		}
+
+		input,
+		button {
+			background-color: var(--base);
+			color: var(--text);
+			border: 1px solid var(--surface0);
+			padding: 5px;
+			font-family: inherit;
+		}
+
+		button {
+			cursor: pointer;
+			border-color: var(--blue);
+			margin-top: 10px;
+		}
+
+		button:hover {
+			background-color: var(--blue);
+			color: var(--base);
+		}
+
+		.warning-btn {
+			border-color: var(--yellow);
+		}
+
+		.warning-btn:hover {
+			background-color: var(--yellow);
+		}
+
+		.danger-btn {
+			border-color: var(--red);
+		}
+
+		.danger-btn:hover {
+			background-color: var(--red);
+		}
+
+		.desc {
+			color: var(--subtext0);
+			font-size: 0.9em;
+			margin-left: 10px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>Webserv Dashboard (CGI)</h1>
+
+		<div class="box">
+			<h2>Other servers</h2>
+			<ul>
+				<li><a href="http://localhost:8080/index8080.html">Port 8080 / 8081 : Main</a></li>
+				<li><a href="http://localhost:9090/index9090.html">Port 9090 : CGI / POST CGI (You are here)</a></li>
+				<li><a href="http://localhost:9999/index9999.html">Port 9999 : Redirections</a></li>
+				<li><a href="http://localhost:7777/index7777.html">Port 7777 : Only 413 (10 byte body size)</a></li>
+			</ul>
+		</div>
+
+		<div class="box">
+			<h2>1. Informations & Variables d'environnement</h2>
+			<ul>
+				<li><a href="/cgi-tests/env_dump.py" target="_blank">GET /env_dump.py</a> <span class="desc">Vérifie que
+						tes meta-variables CGI sont correctes</span></li>
+				<li><a href="/cgi-tests/login.py" target="_blank">GET /login.py</a> <span class="desc">Test de cookies
+						et de requêtes (QUERY_STRING)</span></li>
+			</ul>
+
+			<form action="/cgi-tests/request_info.py" method="POST" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /request_info.py (Python)
+					: Parse les infos basiques</label>
+				<input type="text" name="data" placeholder="Test data Python..." required>
+				<button type="submit">Envoyer (Python)</button>
+			</form>
+
+			<form action="/cgi-tests/request_info.php" method="POST" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /request_info.php (PHP) :
+					Parse les infos basiques</label>
+				<input type="text" name="data" placeholder="Test data PHP..." required>
+				<button type="submit">Envoyer (PHP)</button>
+			</form>
+		</div>
+
+		<div class="box">
+			<h2>2. Headers & Parsing (Edge Cases)</h2>
+			<ul>
+				<li><a href="/cgi-tests/custom_headers.py" target="_blank">GET /custom_headers.py</a> <span
+						class="desc">Le CGI renvoie des headers personnalisés</span></li>
+				<li><a href="/cgi-tests/cgi_status_404.py" target="_blank">GET /cgi_status_404.py</a> <span
+						class="desc">Le CGI force un header "Status: 404"</span></li>
+				<li><a href="/cgi-tests/lf_separator.py" target="_blank">GET /lf_separator.py</a> <span
+						class="desc">Séparateur \n\n au lieu de \r\n\r\n</span></li>
+			</ul>
+		</div>
+
+		<div class="box">
+			<h2>3. Gestion du Body (POST)</h2>
+
+			<form action="/cgi-tests/post_body_check.py" method="POST" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_body_check.py :
+					Vérifie la lecture stricte de CONTENT_LENGTH</label>
+				<input type="text" name="payload" value="Ceci est un test de longueur stricte" required>
+				<button type="submit">Tester CONTENT_LENGTH</button>
+			</form>
+
+			<form action="/cgi-tests/empty_post.py" method="POST" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /empty_post.py : Envoyer
+					un POST sans body (CONTENT_LENGTH=0)</label>
+				<button type="submit">Envoyer POST vide</button>
+			</form>
+
+			<form action="/cgi-tests/binary_upload.py" method="POST" enctype="multipart/form-data" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /binary_upload.py :
+					Upload de fichier binaire via CGI</label>
+				<input type="file" name="fileToUpload" required>
+				<button type="submit">Uploader via CGI</button>
+			</form>
+		</div>
+
+		<div class="box">
+			<h2>4. Limites, Timeouts & Crashs</h2>
+			<ul>
+				<li><a href="/cgi-tests/large_output.php" target="_blank">GET /large_output.php</a> <span
+						class="desc">Le CGI génère un output massif</span></li>
+				<br>
+				<li><a href="/cgi-tests/timeout_5s.py" target="_blank">GET /timeout_5s.py</a> <span class="desc">Pause
+						de 5s (Python)</span></li>
+				<li><a href="/cgi-tests/timeout_5s.php" target="_blank">GET /timeout_5s.php</a> <span class="desc">Pause
+						de 5s (PHP)</span></li>
+				<li><a href="/cgi-tests/timeout_10s.py" target="_blank">GET /timeout_10s.py</a> <span
+						class="desc">Attendu: Erreur 502/504 selon ton timeout</span></li>
+				<br>
+				<li><a href="/cgi-tests/infinite_loop.py" target="_blank">GET /infinite_loop.py</a> <span
+						class="desc">Attendu: 502/504 (Python)</span></li>
+				<li><a href="/cgi-tests/infinite_loop.php" target="_blank">GET /infinite_loop.php</a> <span
+						class="desc">Attendu: 502/504 (PHP)</span></li>
+				<br>
+				<li><a href="/cgi-tests/crash_before_header.py" target="_blank" style="color: var(--red);">GET
+						/crash_before_header.py</a> <span class="desc">Attendu: Erreur 500 (Crash avant d'écrire)</span>
+				</li>
+				<li><a href="/cgi-tests/crash_after_header.py" target="_blank" style="color: var(--yellow);">GET
+						/crash_after_header.py</a> <span class="desc">Attendu: Réponse partielle + coupure socket</span>
+				</li>
+			</ul>
+		</div>
+
+	</div>
+</body>
+
+</html>

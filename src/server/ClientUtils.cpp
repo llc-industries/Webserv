@@ -96,7 +96,6 @@ bool Client::_isMethodAllowed(const Route &route) const {
     if (route.loc->methods[i] == method)
       return true;
   }
-
   return false;
 }
 
