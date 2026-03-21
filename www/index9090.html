@@ -126,6 +126,29 @@
 			font-size: 0.9em;
 			margin-left: 10px;
 		}
+
+		.curl {
+			display: block;
+			background-color: var(--crust);
+			color: var(--teal);
+			border-left: 3px solid var(--surface0);
+			padding: 5px 10px;
+			margin-top: 4px;
+			margin-left: 14px;
+			font-size: 0.85em;
+			border-radius: 3px;
+			cursor: pointer;
+			user-select: all;
+		}
+
+		.curl:hover {
+			border-left-color: var(--teal);
+		}
+
+		.curl::before {
+			content: "$ ";
+			color: var(--subtext0);
+		}
 	</style>
 </head>
 
@@ -147,25 +170,42 @@
 			<h2>Python CGI Tests</h2>
 
 			<ul>
-				<li><a href="/cgi-tests/python/env_dump.py" target="_blank">GET /env_dump.py</a> <span class="desc">Dump
-						env variables</span></li>
-				<li><a href="/cgi-tests/python/login.py" target="_blank">GET /login.py</a> <span class="desc">Test
-						cookies</span></li>
-				<li><a href="/cgi-tests/python/lf_separator.py" target="_blank">GET /lf_separator.py</a> <span
-						class="desc">\n\n separator (Edge case)</span></li>
-				<li><a href="/cgi-tests/python/large_output.py" target="_blank">GET /large_output.py</a> <span
-						class="desc">Stress test (100,000 lines)</span></li>
-				<li><a href="/cgi-tests/python/infinite.py" target="_blank">GET /infinite.py</a> <span
-						class="desc">Expected: 502/504 (Timeout)</span></li>
-				<li><a href="/cgi-tests/python/crash_before.py" target="_blank" style="color: var(--red);">GET
-						/crash_before.py</a> <span class="desc">Expected: 500 Error (Crash before writing)</span></li>
-				<li><a href="/cgi-tests/python/crash_after.py" target="_blank" style="color: var(--yellow);">GET
-						/crash_after.py</a> <span class="desc">Expected: Partial response + TCP Cut</span></li>
+				<li>
+					<a href="/cgi-tests/python/env_dump.py" target="_blank">GET /env_dump.py</a>
+					<span class="desc">Dump env variables</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/python/env_dump.py</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/python/lf_separator.py" target="_blank">GET /lf_separator.py</a>
+					<span class="desc">\n\n separator (Edge case)</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/python/lf_separator.py</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/python/large_output.py" target="_blank">GET /large_output.py</a>
+					<span class="desc">Stress test (100,000 lines)</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/python/large_output.py | wc -l</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/python/infinite.py" target="_blank">GET /infinite.py</a>
+					<span class="desc">Expected: 502/504 (Timeout)</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/python/infinite.py</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/python/crash_before.py" target="_blank" style="color: var(--red);">GET /crash_before.py</a>
+					<span class="desc">Expected: 500 Error (Crash before writing)</span>
+					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/python/crash_before.py</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/python/crash_after.py" target="_blank" style="color: var(--yellow);">GET /crash_after.py</a>
+					<span class="desc">Expected: Partial response + TCP Cut</span>
+					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/python/crash_after.py</code>
+				</li>
 			</ul>
 
 			<form action="/cgi-tests/python/post_echo.py" method="POST" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_echo.py : Check
 					strict reading of CONTENT_LENGTH</label>
+				<code class="curl">curl -X POST -d "payload=This+is+an+echo+test" http://127.0.0.1:9090/cgi-tests/python/post_echo.py</code>
 				<input type="text" name="payload" value="This is an echo test" required>
 				<button type="submit">Test POST (Echo)</button>
 			</form>
@@ -173,12 +213,14 @@
 			<form action="/cgi-tests/python/post_empty.py" method="POST" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_empty.py : Send
 					POST without body (CONTENT_LENGTH=0)</label>
+				<code class="curl">curl -X POST http://127.0.0.1:9090/cgi-tests/python/post_empty.py</code>
 				<button type="submit">Send empty POST</button>
 			</form>
 
 			<form action="/cgi-tests/python/post_binary.py" method="POST" enctype="multipart/form-data" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_binary.py : Binary
 					file upload (Binary Safety)</label>
+				<code class="curl">curl -X POST -F "fileToUpload=@/path/to/file" http://127.0.0.1:9090/cgi-tests/python/post_binary.py</code>
 				<input type="file" name="fileToUpload" required>
 				<button type="submit">Upload Binary</button>
 			</form>
@@ -187,7 +229,63 @@
 
 		<div class="box">
 			<h2>PHP CGI Tests</h2>
-			<p style="color: var(--subtext0);">PHP scripts will be added here.</p>
+
+			<ul>
+				<li>
+					<a href="/cgi-tests/php/env_dump.php" target="_blank">GET /env_dump.php</a>
+					<span class="desc">Dump env variables</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/env_dump.php</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/php/lf_separator.php" target="_blank">GET /lf_separator.php</a>
+					<span class="desc">\n\n separator (Edge case)</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/lf_separator.php</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/php/large_output.php" target="_blank">GET /large_output.php</a>
+					<span class="desc">Stress test (100,000 lines)</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/large_output.php | wc -l</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/php/infinite.php" target="_blank">GET /infinite.php</a>
+					<span class="desc">Expected: 502/504 (Timeout)</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/infinite.php</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/php/crash_before.php" target="_blank" style="color: var(--red);">GET /crash_before.php</a>
+					<span class="desc">Expected: 500 Error (Crash before writing)</span>
+					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/php/crash_before.php</code>
+				</li>
+				<li>
+					<a href="/cgi-tests/php/crash_after.php" target="_blank" style="color: var(--yellow);">GET /crash_after.php</a>
+					<span class="desc">Expected: Partial response + TCP Cut</span>
+					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/php/crash_after.php</code>
+				</li>
+			</ul>
+
+			<form action="/cgi-tests/php/post_echo.php" method="POST" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_echo.php : Check
+					strict reading of CONTENT_LENGTH</label>
+				<code class="curl">curl -X POST -d "payload=This+is+an+echo+test" http://127.0.0.1:9090/cgi-tests/php/post_echo.php</code>
+				<input type="text" name="payload" value="This is an echo test" required>
+				<button type="submit">Test POST (Echo)</button>
+			</form>
+
+			<form action="/cgi-tests/php/post_empty.php" method="POST" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_empty.php : Send
+					POST without body (CONTENT_LENGTH=0)</label>
+				<code class="curl">curl -X POST http://127.0.0.1:9090/cgi-tests/php/post_empty.php</code>
+				<button type="submit">Send empty POST</button>
+			</form>
+
+			<form action="/cgi-tests/php/post_binary.php" method="POST" enctype="multipart/form-data" target="_blank">
+				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_binary.php : Binary
+					file upload (Binary Safety)</label>
+				<code class="curl">curl -X POST -F "fileToUpload=@/path/to/file" http://127.0.0.1:9090/cgi-tests/php/post_binary.php</code>
+				<input type="file" name="fileToUpload" required>
+				<button type="submit">Upload Binary</button>
+			</form>
+
 		</div>
 
 	</div>
