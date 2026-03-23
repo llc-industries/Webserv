@@ -196,21 +196,53 @@ void Client::parseCgiResponse() {
     _setError(500);
     return;
   }
-
   size_t header_end = _cgiOutput.find("\r\n\r\n");
-  if (header_end == std::string::npos)
+  size_t sep_len = 4;
+
+  if (header_end == std::string::npos) {
     header_end = _cgiOutput.find("\n\n");
-  std::string body = "";
+    sep_len = 2;
+  }
+
+  std::string header_str;
+  std::string body;
+
   if (header_end != std::string::npos) {
-    body = _cgiOutput.substr(header_end +
-                             (_cgiOutput[header_end] == '\r' ? 4 : 2));
+    header_str = _cgiOutput.substr(0, header_end);
+    body = _cgiOutput.substr(header_end + sep_len);
   } else {
     body = _cgiOutput;
   }
-  _response.setStatusCode(200);
-  _response.setHeader("Content-Type", "text/html");
-  _response.setBody(body);
 
+  int status_code = 200;
+  std::string content_type = "text/html";
+
+  std::istringstream iss(header_str);
+  std::string line;
+  while (std::getline(iss, line)) {
+    if (line.empty() == false && line[line.length() - 1] == '\r')
+      line.erase(line.length() - 1);
+
+    size_t colon = line.find(":");
+    if (colon != std::string::npos) {
+      std::string key = line.substr(0, colon);
+      std::string value = line.substr(colon + 1);
+
+      size_t start = value.find_first_not_of(" \t");
+      if (start != std::string::npos)
+        value = value.substr(start);
+
+      if (key == "Status")
+        status_code = std::atoi(value.c_str());
+      else if (key == "Content-Type" || key == "Content-type")
+        content_type = value;
+      else
+        _response.setHeader(key, value);
+    }
+  }
+  _response.setStatusCode(status_code);
+  _response.setBody(body);
+  _response.setHeader("Content-Type", content_type);
   _rawResponse = _response.toString();
   _isRespReady = true;
 }
@@ -220,3 +252,5 @@ void Client::cgiTimeoutClean() {
   resetCgi();
   _lastActivity = std::time(NULL);
 }
+
+void Client::cgiCrash() { _setError(500); }

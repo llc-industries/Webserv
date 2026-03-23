@@ -339,13 +339,19 @@ void Server::_handleCgiRead(int cgi_fd) {
   } else if (bytes == 0) {
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, cgi_fd, NULL);
     client.closeCgiFdOut();
-
     _cgiMap.erase(cgi_fd);
 
-    waitpid(client.getCgiPid(), NULL, WNOHANG);
+    int status = 0;
+
+    waitpid(client.getCgiPid(), &status, WNOHANG);
     client.resetCgi();
 
-    client.parseCgiResponse();
+    if (WIFSIGNALED(status) ||
+        (WIFEXITED(status) && WEXITSTATUS(status) != 0)) {
+      LOG_ERR("CGI Process return value " << WEXITSTATUS(status));
+      client.cgiCrash();
+    } else
+      client.parseCgiResponse();
 
     epoll_event ev;
     std::memset(&ev, 0, sizeof(ev));

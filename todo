@@ -1,4 +1,2 @@
-fix les 200 sur crash.php (check le return code waitpid dans handlecgiwrite()) ---> Léo
 Ajouter les scripts cookies cart sur le dashboard --> anas
-J'ai pas de cookies généré sur firefox d'ailleurs (check à 42 ?) --> Anas
 Mettre les sources dans le makefile ---> léo

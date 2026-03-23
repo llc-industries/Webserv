@@ -43,6 +43,7 @@ public:
   void appendCgiOutput(const char *buf, ssize_t bytes);
   void parseCgiResponse();
   void cgiTimeoutClean();
+  void cgiCrash();
   void closeCgiFdOut();
   void closeCgiFdIn();
   void resetCgi();
