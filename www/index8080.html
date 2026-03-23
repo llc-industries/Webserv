@@ -144,12 +144,11 @@
             <h2>Standard HTTP (GET, POST, DELETE)</h2>
 
             <p>> <a href="/index8080.html">GET /index8080.html</a></p>
-            <code class="curl">curl http://localhost:8080/index8080.html</code>
 
             <form onsubmit="event.preventDefault(); sendUpload();">
                 <label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST: Upload file to
                     www/upload</label>
-                <code class="curl">curl -X POST -F "fileToUpload=@/path/to/file" http://localhost:8080/upload</code>
+                <code class="curl">curl -X POST -F "fileToUpload=@$HOME/path" http://localhost:8080/upload</code>
                 <input type="file" id="fileInput" required>
                 <button type="submit">Envoyer (POST)</button>
                 <div id="uploadLog" class="log"></div>
