@@ -225,7 +225,7 @@
 			<form action="/cgi-tests/python/post_binary.py" method="POST" enctype="multipart/form-data" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_binary.py : Binary
 					file upload (Binary Safety)</label>
-				<code class="curl">curl -X POST -F "fileToUpload=@/path/to/file" http://127.0.0.1:9090/cgi-tests/python/post_binary.py</code>
+				<code class="curl">curl -X POST -F "fileToUpload=@$HOME/path" http://127.0.0.1:9090/cgi-tests/python/post_binary.py</code>
 				<input type="file" name="fileToUpload" required>
 				<button type="submit">Upload Binary</button>
 			</form>
@@ -286,7 +286,7 @@
 			<form action="/cgi-tests/php/post_binary.php" method="POST" enctype="multipart/form-data" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_binary.php : Binary
 					file upload (Binary Safety)</label>
-				<code class="curl">curl -X POST -F "fileToUpload=@/path/to/file" http://127.0.0.1:9090/cgi-tests/php/post_binary.php</code>
+				<code class="curl">curl -X POST -F "fileToUpload=@$HOME/path" http://127.0.0.1:9090/cgi-tests/php/post_binary.php</code>
 				<input type="file" name="fileToUpload" required>
 				<button type="submit">Upload Binary</button>
 			</form>
