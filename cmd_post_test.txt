@@ -1,7 +1,17 @@
 Commandes pour test les differents posts:
 
-1/ Rajouter set_cookie (script + lien dashboard 9090)
-2/ Remplir les commandes post curl
 3/ Rajouter des commandes siege
 4/ Script python vnr pour test ?
 5/ Rajouter des tests autoindex
+
+----- Via python -----
+curl -v -X POST -d "param1=test&param2=42" http://localhost:9090/cgi-tests/python/post_echo.py
+curl -v -X POST -F "user=leo" -F "fileToUpload=@photo.jpg" http://localhost:9090/cgi-tests/python/post_binary.py
+curl -v -X POST -F "fileToUpload=@photo.jpg" http://localhost:7777/
+
+----- Via HTTP ------
+curl -v -X POST -F "fileToUpload=@photo.jpg" http://localhost:8080/upload
+curl -v --limit-rate 10K -X POST -F "fileToUpload=@photo.jpg" http://localhost:8080/upload
+curl -v -X POST -H "Transfer-Encoding: chunked" --data-binary @photo.jpg http://localhost:8080/upload
+curl -v -X POST -F "fileToUpload=@photo.jpg" http://localhost:7777/upload
+curl -v -X POST -H "Content-Type: image/jpeg" --data-binary @photo.jpg http://localhost:8080/upload
