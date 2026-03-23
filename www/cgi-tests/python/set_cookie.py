@@ -9,13 +9,16 @@ def get_expiry(days=7):
     return exp.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 def send_headers(cookie_header):
-    print("Content-Type: text/html\r")
+    # Ajout du charset utf-8 dans les headers HTTP
+    print("Content-Type: text/html; charset=utf-8\r")
     if cookie_header:
         print(cookie_header, end="")
     print("\r")
 
 def render_page(cookies_in, new_session=None):
-    print("<html><head><style>")
+    print("<!DOCTYPE html>")
+    # Ajout de la balise meta charset UTF-8 dans le head HTML
+    print("<html lang=\"fr\"><head><meta charset=\"UTF-8\"><style>")
     print("body{font-family:monospace;background:#1e1e2e;color:#cdd6f4;padding:2rem;}")
     print(".box{background:#313244;border-radius:8px;padding:1.5rem;max-width:600px;}")
     print(".tag{color:#a6e3a1;} .val{color:#f9e2af;} .new{color:#89b4fa;font-style:italic;}")

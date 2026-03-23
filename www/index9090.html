@@ -171,10 +171,10 @@
 
 			<ul>
 				<li>
-                    <a href="/cgi-tests/python/set_cookie.py" target="_blank">GET /set_cookie.py</a>
-                    <span class="desc">Set le cookie dans l'env si le navigateur le genere pas par defaut</span>
-                    <code class="curl">curl http://127.0.0.1:9090/cgi-tests/python/set_ccokie.py</code>
-                </li>
+					<a href="/cgi-tests/python/set_cookie.py" target="_blank">GET /set_cookie.py</a>
+					<span class="desc">Set le cookie dans l'env si le navigateur le genere pas par defaut</span>
+					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/python/set_ccokie.py</code>
+				</li>
 				<li>
 					<a href="/cgi-tests/python/env_dump.py" target="_blank">GET /env_dump.py</a>
 					<span class="desc">Dump env variables</span>
@@ -196,13 +196,15 @@
 					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/python/infinite.py</code>
 				</li>
 				<li>
-					<a href="/cgi-tests/python/crash_before.py" target="_blank" style="color: var(--red);">GET /crash_before.py</a>
-					<span class="desc">Expected: 500 Error (Crash before writing)</span>
+					<a href="/cgi-tests/python/crash_before.py" target="_blank" style="color: var(--red);">GET
+						/crash_before.py</a>
+					<span class="desc">Expected: 500 Error</span>
 					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/python/crash_before.py</code>
 				</li>
 				<li>
-					<a href="/cgi-tests/python/crash_after.py" target="_blank" style="color: var(--yellow);">GET /crash_after.py</a>
-					<span class="desc">Expected: Partial response + TCP Cut</span>
+					<a href="/cgi-tests/python/crash_after.py" target="_blank" style="color: var(--yellow);">GET
+						/crash_after.py</a>
+					<span class="desc">Expected: 500 Error</span>
 					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/python/crash_after.py</code>
 				</li>
 			</ul>
@@ -210,7 +212,8 @@
 			<form action="/cgi-tests/python/post_echo.py" method="POST" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_echo.py : Check
 					strict reading of CONTENT_LENGTH</label>
-				<code class="curl">curl -X POST -d "payload=This+is+an+echo+test" http://127.0.0.1:9090/cgi-tests/python/post_echo.py</code>
+				<code
+					class="curl">curl -X POST -d "payload=This+is+an+echo+test" http://127.0.0.1:9090/cgi-tests/python/post_echo.py</code>
 				<input type="text" name="payload" value="This is an echo test" required>
 				<button type="submit">Test POST (Echo)</button>
 			</form>
@@ -225,7 +228,8 @@
 			<form action="/cgi-tests/python/post_binary.py" method="POST" enctype="multipart/form-data" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_binary.py : Binary
 					file upload (Binary Safety)</label>
-				<code class="curl">curl -X POST -F "fileToUpload=@$HOME/path" http://127.0.0.1:9090/cgi-tests/python/post_binary.py</code>
+				<code
+					class="curl">curl -X POST -F "fileToUpload=@$HOME/path" http://127.0.0.1:9090/cgi-tests/python/post_binary.py</code>
 				<input type="file" name="fileToUpload" required>
 				<button type="submit">Upload Binary</button>
 			</form>
@@ -242,11 +246,6 @@
 					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/env_dump.php</code>
 				</li>
 				<li>
-					<a href="/cgi-tests/php/lf_separator.php" target="_blank">GET /lf_separator.php</a>
-					<span class="desc">\n\n separator (Edge case)</span>
-					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/lf_separator.php</code>
-				</li>
-				<li>
 					<a href="/cgi-tests/php/large_output.php" target="_blank">GET /large_output.php</a>
 					<span class="desc">Stress test (100,000 lines)</span>
 					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/large_output.php | wc -l</code>
@@ -257,13 +256,15 @@
 					<code class="curl">curl http://127.0.0.1:9090/cgi-tests/php/infinite.php</code>
 				</li>
 				<li>
-					<a href="/cgi-tests/php/crash_before.php" target="_blank" style="color: var(--red);">GET /crash_before.php</a>
-					<span class="desc">Expected: 500 Error (Crash before writing)</span>
+					<a href="/cgi-tests/php/crash_before.php" target="_blank" style="color: var(--red);">GET
+						/crash_before.php</a>
+					<span class="desc">Expected: 500 Error</span>
 					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/php/crash_before.php</code>
 				</li>
 				<li>
-					<a href="/cgi-tests/php/crash_after.php" target="_blank" style="color: var(--yellow);">GET /crash_after.php</a>
-					<span class="desc">Expected: Partial response + TCP Cut</span>
+					<a href="/cgi-tests/php/crash_after.php" target="_blank" style="color: var(--yellow);">GET
+						/crash_after.php</a>
+					<span class="desc">Expected: 500 Error</span>
 					<code class="curl">curl -v http://127.0.0.1:9090/cgi-tests/php/crash_after.php</code>
 				</li>
 			</ul>
@@ -271,7 +272,8 @@
 			<form action="/cgi-tests/php/post_echo.php" method="POST" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_echo.php : Check
 					strict reading of CONTENT_LENGTH</label>
-				<code class="curl">curl -X POST -d "payload=This+is+an+echo+test" http://127.0.0.1:9090/cgi-tests/php/post_echo.php</code>
+				<code
+					class="curl">curl -X POST -d "payload=This+is+an+echo+test" http://127.0.0.1:9090/cgi-tests/php/post_echo.php</code>
 				<input type="text" name="payload" value="This is an echo test" required>
 				<button type="submit">Test POST (Echo)</button>
 			</form>
@@ -286,7 +288,8 @@
 			<form action="/cgi-tests/php/post_binary.php" method="POST" enctype="multipart/form-data" target="_blank">
 				<label style="color: var(--subtext0); display:block; margin-bottom:10px;">POST /post_binary.php : Binary
 					file upload (Binary Safety)</label>
-				<code class="curl">curl -X POST -F "fileToUpload=@$HOME/path" http://127.0.0.1:9090/cgi-tests/php/post_binary.php</code>
+				<code
+					class="curl">curl -X POST -F "fileToUpload=@$HOME/path" http://127.0.0.1:9090/cgi-tests/php/post_binary.php</code>
 				<input type="file" name="fileToUpload" required>
 				<button type="submit">Upload Binary</button>
 			</form>

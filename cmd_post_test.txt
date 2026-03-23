@@ -15,3 +15,7 @@ curl -v --limit-rate 10K -X POST -F "fileToUpload=@photo.jpg" http://localhost:8
 curl -v -X POST -H "Transfer-Encoding: chunked" --data-binary @photo.jpg http://localhost:8080/upload
 curl -v -X POST -F "fileToUpload=@photo.jpg" http://localhost:7777/upload
 curl -v -X POST -H "Content-Type: image/jpeg" --data-binary @photo.jpg http://localhost:8080/upload
+
+
+----- Siege -------
+siege -b -c 50 -t 10S http://localhost:8080/index8080.html
