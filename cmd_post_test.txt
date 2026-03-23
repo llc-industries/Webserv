@@ -1,0 +1,7 @@
+Commandes pour test les differents posts:
+
+1/ Rajouter set_cookie (script + lien dashboard 9090)
+2/ Remplir les commandes post curl
+3/ Rajouter des commandes siege
+4/ Script python vnr pour test ?
+5/ Rajouter des tests autoindex
