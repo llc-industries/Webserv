@@ -3,12 +3,22 @@ CC := c++
 
 CFLAGS := -std=c++98 -Wall -Wextra -Werror -MMD -Iincludes
 
-SRCS := $(shell find src -name "*.cpp")
+SRCS := src/parser/ConfigParser.cpp \
+	src/parser/ConfigParserUtils.cpp \
+	src/parser/ConfigPrint.cpp \
+	src/parser/ConfigTokenizer.cpp \
+	src/http/HttpRequest.cpp \
+	src/http/HttpResponse.cpp \
+	src/main.cpp \
+	src/server/CgiHandler.cpp \
+	src/server/ClientUtils.cpp \
+	src/server/Client.cpp \
+	src/server/Server.cpp
 OBJ_DIR := build
 OBJ := $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 DEPS := $(OBJ:.o=.d)
 
-default: vg
+default: eval
 
 all: $(NAME)
 
@@ -37,7 +47,7 @@ vg: re
 san: re
 	./$(NAME)
 
-eval: re
+eval: all
 
 -include $(DEPS)
 
